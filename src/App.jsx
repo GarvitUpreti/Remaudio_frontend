@@ -122,7 +122,6 @@ const MainLayout = ({
   return (
     <>
       <Header
-        user={user}
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       />

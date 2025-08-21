@@ -45,6 +45,8 @@ const Auth3 = () => { // ✅ Remove prop parameter
         }
       );
       localStorage.setItem("userEmail", userEmail);
+      localStorage.setItem("userId", userRes.data.id); // Store user ID for future use
+      console.log("User id:", userRes.data.id);
       
       // ✅ Only dispatch to Redux - this will trigger App component re-render
       dispatch(setUser(userRes.data));

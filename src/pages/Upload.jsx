@@ -1,16 +1,14 @@
 import React, { useState } from 'react';
+import { useDispatch } from 'react-redux';
+import { setUser } from '../store/userSlice'; // Adjust the path as needed
 
 const Upload = () => {
+  const dispatch = useDispatch();
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [songMetadata, setSongMetadata] = useState({
-    title: '',
-    artist: '',
-    album: '',
-    genre: ''
-  });
+  const [uploadedSong, setUploadedSong] = useState([]); // new state
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -26,7 +24,7 @@ const Upload = () => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
-    
+
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFiles(e.dataTransfer.files);
     }
@@ -42,35 +40,61 @@ const Upload = () => {
   const handleFiles = async (files) => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
-      
+
       if (!file.type.startsWith('audio/')) {
         alert(`${file.name} is not an audio file`);
         continue;
       }
 
+      // Upload file directly without conversion
       await uploadFile(file);
+    }
+  };
+
+  const updateUserInRedux = async (newFiles) => {
+    try {
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        console.error('User id not found in localStorage');
+        return;
+      }
+
+      const response = await fetch(`http://localhost:3000/user/${userId}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          songToAdd: newFiles  // ✅ send array of song IDs
+        }),
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        dispatch(setUser(userData));
+      } else {
+        console.error('Failed to fetch user data');
+      }
+    } catch (error) {
+      console.error('Error updating user:', error);
     }
   };
 
   const uploadFile = async (file) => {
     const formData = new FormData();
-    formData.append('file', file);
-    
-    // Add metadata if provided
-    if (songMetadata.title) formData.append('title', songMetadata.title);
-    if (songMetadata.artist) formData.append('artist', songMetadata.artist);
-    if (songMetadata.album) formData.append('album', songMetadata.album);
-    if (songMetadata.genre) formData.append('genre', songMetadata.genre);
-    
+    formData.append('audio', file);
+
     setUploading(true);
     setUploadProgress(0);
 
     try {
       const xhr = new XMLHttpRequest();
-      
+
       xhr.upload.addEventListener('progress', (e) => {
         if (e.lengthComputable) {
           const progress = (e.loaded / e.total) * 100;
+          console.log('Upload progress:', progress); // Debug log
           setUploadProgress(Math.round(progress));
         }
       });
@@ -78,23 +102,29 @@ const Upload = () => {
       const response = await new Promise((resolve, reject) => {
         xhr.onload = () => resolve(xhr);
         xhr.onerror = () => reject(xhr);
-        
+        xhr.ontimeout = () => reject(new Error('Upload timeout'));
+
         xhr.open('POST', 'http://localhost:3000/songs/upload');
-        xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('token')}`);
+        xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('accessToken')}`);
+        xhr.timeout = 300000; // 5 minutes timeout
         xhr.send(formData);
       });
 
       if (response.status === 200 || response.status === 201) {
         const result = JSON.parse(response.responseText);
-        setUploadedFiles(prev => [...prev, { name: file.name, status: 'success', id: result.id }]);
+
+        // ✅ only store array of IDs               
         
-        // Clear metadata form
-        setSongMetadata({
-          title: '',
-          artist: '',
-          album: '',
-          genre: ''
+        setUploadedFiles(prev => {
+          const newFiles = [...prev, result.id];
+          updateUserInRedux(newFiles);
+          return newFiles;
         });
+        setUploadedSong(prev => {
+          const newFiles = [...prev, result.name];
+          return newFiles;
+        });
+
       } else {
         setUploadedFiles(prev => [...prev, { name: file.name, status: 'error' }]);
       }
@@ -114,94 +144,53 @@ const Upload = () => {
   return (
     <div className="p-6">
       <h1 className="text-3xl font-bold text-white mb-6">Upload Songs</h1>
-      
-      <div className="max-w-4xl mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Upload Area */}
-          <div>
-            <div
-              className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
-                dragActive 
-                  ? 'border-blue-500 bg-blue-500/10' 
-                  : 'border-gray-600 hover:border-gray-500'
-              }`}
-              onDragEnter={handleDrag}
-              onDragLeave={handleDrag}
-              onDragOver={handleDrag}
-              onDrop={handleDrop}
-            >
-              <input
-                type="file"
-                id="file-upload"
-                className="hidden"
-                onChange={handleChange}
-                accept="audio/*"
-                multiple
-                disabled={uploading}
-              />
-              
-              <label htmlFor="file-upload" className="cursor-pointer">
-                <div className="text-6xl text-gray-400 mb-4">🎵</div>
-                <h3 className="text-xl font-semibold text-white mb-2">
-                  {uploading ? 'Uploading...' : 'Drop your music here'}
-                </h3>
-                <p className="text-gray-400 mb-4">
-                  {uploading ? `${uploadProgress}% complete` : 'Or click to browse files'}
-                </p>
-                <p className="text-sm text-gray-500">
-                  Supports MP3, WAV, FLAC, and other audio formats
-                </p>
-              </label>
-              
-              {uploading && (
-                <div className="mt-4">
-                  <div className="bg-gray-700 rounded-full h-2">
-                    <div 
-                      className="bg-blue-500 h-2 rounded-full transition-all"
-                      style={{ width: `${uploadProgress}%` }}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
 
-          {/* Metadata Form */}
-          <div className="bg-gray-900 rounded-lg p-6">
-            <h3 className="text-xl font-semibold text-white mb-4">Song Information (Optional)</h3>
-            <div className="space-y-4">
-              <input
-                type="text"
-                placeholder="Song Title"
-                value={songMetadata.title}
-                onChange={(e) => setSongMetadata({...songMetadata, title: e.target.value})}
-                className="w-full bg-gray-800 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              
-              <input
-                type="text"
-                placeholder="Artist"
-                value={songMetadata.artist}
-                onChange={(e) => setSongMetadata({...songMetadata, artist: e.target.value})}
-                className="w-full bg-gray-800 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              
-              <input
-                type="text"
-                placeholder="Album"
-                value={songMetadata.album}
-                onChange={(e) => setSongMetadata({...songMetadata, album: e.target.value})}
-                className="w-full bg-gray-800 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              
-              <input
-                type="text"
-                placeholder="Genre"
-                value={songMetadata.genre}
-                onChange={(e) => setSongMetadata({...songMetadata, genre: e.target.value})}
-                className="w-full bg-gray-800 text-white p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+      <div className="max-w-4xl mx-auto">
+        {/* Upload Area */}
+        <div className="mb-8">
+          <div
+            className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${dragActive
+                ? 'border-blue-500 bg-blue-500/10'
+                : 'border-gray-600 hover:border-gray-500'
+              }`}
+            onDragEnter={handleDrag}
+            onDragLeave={handleDrag}
+            onDragOver={handleDrag}
+            onDrop={handleDrop}
+          >
+            <input
+              type="file"
+              id="file-upload"
+              className="hidden"
+              onChange={handleChange}
+              accept="audio/*"
+              multiple
+              disabled={uploading}
+            />
+
+            <label htmlFor="file-upload" className="cursor-pointer">
+              <div className="text-6xl text-gray-400 mb-4">🎵</div>
+              <h3 className="text-xl font-semibold text-white mb-2">
+                {uploading ? 'Uploading...' : 'Drop your music here'}
+              </h3>
+              <p className="text-gray-400 mb-4">
+                {uploading ? `${uploadProgress}% complete` : 'Or click to browse files'}
+              </p>
+              <p className="text-sm text-gray-500">
+                Supports MP3, WAV, FLAC, and other audio formats
+              </p>
+            </label>
+
+            {uploading && (
+              <div className="mt-4">
+                <div className="bg-gray-700 rounded-full h-2">
+                  <div
+                    className="bg-blue-500 h-2 rounded-full transition-all"
+                    style={{ width: `${uploadProgress}%` }}
+                  />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -217,18 +206,12 @@ const Upload = () => {
                 Clear
               </button>
             </div>
-            
+
             <div className="space-y-2">
-              {uploadedFiles.map((file, index) => (
+              {uploadedSong.map((name, index) => (
                 <div key={index} className="flex items-center justify-between bg-gray-800 p-3 rounded-lg">
-                  <span className="text-white">{file.name}</span>
-                  <span className={`text-sm px-2 py-1 rounded ${
-                    file.status === 'success' 
-                      ? 'bg-green-600 text-white' 
-                      : 'bg-red-600 text-white'
-                  }`}>
-                    {file.status === 'success' ? '✓ Uploaded' : '✗ Failed'}
-                  </span>
+                  <span className="text-white">Song Name: {name}</span>
+                  <span className="bg-green-600 text-white text-sm px-2 py-1 rounded">✓ Uploaded</span>
                 </div>
               ))}
             </div>

@@ -1,6 +1,12 @@
 import React from 'react';
+import { useSelector } from "react-redux";
+import logo from '../assets/remaudio_logo.png';
 
-const Header = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
+const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
+
+  const user = useSelector((state) => state.user.user);
+  console.log("User in Header:", user);
+  console.log(user?.profilePic)
   return (
     <header className="bg-gray-900 border-b border-gray-700 p-4 flex items-center justify-between">
       <div className="flex items-center">
@@ -14,9 +20,9 @@ const Header = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
             <div className="w-6 h-0.5 bg-white"></div>
           </div>
         </button>
-        
+
         <div className="flex items-center">
-          <span className="text-2xl font-bold text-white mr-1">R</span>
+          <img src={logo} className="w-14 h-14 object-cover" alt="" />
           <span className="text-2xl font-bold text-blue-500">emaudio</span>
         </div>
       </div>
@@ -29,10 +35,14 @@ const Header = ({ user, isSidebarOpen, setIsSidebarOpen }) => {
             <div className="w-6 h-0.5 bg-white"></div>
           </div>
         </button>
-        
-        <div className="w-10 h-10 bg-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-          {user?.name?.charAt(0).toUpperCase() || 'M'}
-        </div>
+
+        {user?.profilePic && (
+          <img
+            src={user.profilePic}
+            alt="profile"
+            className="w-10 h-10 rounded-full object-cover"
+          />
+        )}
       </div>
     </header>
   );
