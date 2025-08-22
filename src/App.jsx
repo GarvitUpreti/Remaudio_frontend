@@ -142,7 +142,7 @@ const MainLayout = ({
                 />
               } 
             />
-            <Route path="/playlists" element={<Playlists playlists={user?.playlists || []} />} />
+            <Route path="/playlists" element={<Playlists />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/developer" element={<DeveloperNote />} />
             <Route path="*" element={<Navigate to="/" />} />
