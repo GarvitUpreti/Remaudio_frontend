@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
-import { setUser } from '../store/userSlice'; // Adjust the path as needed
+import { setUser } from '../store/userSlice';
+import PlaylistModal from '../components/PlaylistModal'; // Import the modal component
 
 const Playlists = () => {
   const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const user = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
@@ -127,6 +129,34 @@ const Playlists = () => {
     }
   };
 
+  // New function to handle opening playlist modal
+  const openPlaylist = (playlist) => {
+    setSelectedPlaylist(playlist);
+    setIsModalOpen(true);
+  };
+
+  // New function to handle playlist updates from modal
+  const handleUpdatePlaylist = async (playlistId, updates) => {
+    try {
+      const response = await axios.patch(
+        `http://localhost:3000/playlists/${playlistId}`,
+        updates,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        // Refresh user data to get updated playlists
+        await updateUserInRedux("get");
+      }
+    } catch (error) {
+      console.error('Error updating playlist:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="p-6 flex justify-center items-center">
@@ -214,13 +244,24 @@ const Playlists = () => {
                 {playlist.songs?.length || 0} songs
               </p>
 
-              <button className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors">
+              <button 
+                onClick={() => openPlaylist(playlist)}
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors"
+              >
                 Open Playlist
               </button>
             </div>
           ))}
         </div>
       )}
+
+      {/* Playlist Modal */}
+      <PlaylistModal 
+        playlist={selectedPlaylist}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onUpdatePlaylist={handleUpdatePlaylist}
+      />
     </div>
   );
 };

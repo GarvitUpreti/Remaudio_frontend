@@ -34,6 +34,7 @@ const App = () => {
   const checkAuthStatus = async () => {
     const token = localStorage.getItem('accessToken');
     const userEmail = localStorage.getItem('userEmail');
+    const userId = localStorage.getItem('userId');
 
     if (!token || !userEmail) {
       // No token or email, user needs to authenticate
@@ -71,6 +72,7 @@ const App = () => {
       }, 2000);
     }
   };
+  
 
   // Show loading screen
   if (loading) {
