@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser } from '../store/userSlice';
+import { addPlaylist, removePlaylist, updatePlaylist } from '../store/playlistSlice'; // Add updatePlaylist import
 import PlaylistModal from '../components/PlaylistModal'; // Import the modal component
 
 const Playlists = () => {
@@ -12,6 +13,7 @@ const Playlists = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const user = useSelector((state) => state.user.user);
+  const playlists = useSelector((state) => state.playlists.list);
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -45,12 +47,14 @@ const Playlists = () => {
         }
       );
 
+      dispatch(addPlaylist(response.data));
+
       if (response.status === 201 || response.status === 200) {
         const newPlaylist = response.data;
-        
+
         // Update user in Redux with the new playlist ID
         await updateUserInRedux("patch", newPlaylist.id);
-        
+
         setNewPlaylistName("");
         setShowCreateForm(false);
       }
@@ -115,6 +119,7 @@ const Playlists = () => {
           },
         }
       );
+      dispatch(removePlaylist(playlistId));
 
       if (response.status === 200 || response.status === 204) {
         // No need to update local state, will be updated via Redux
@@ -135,27 +140,40 @@ const Playlists = () => {
     setIsModalOpen(true);
   };
 
-  // New function to handle playlist updates from modal
-  const handleUpdatePlaylist = async (playlistId, updates) => {
+  const handleUpdatePlaylist = async (playlistId, updatedData) => {
     try {
+      console.log('Updating playlist:', playlistId, updatedData);
+
       const response = await axios.patch(
         `http://localhost:3000/playlists/${playlistId}`,
-        updates,
+        updatedData,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
+            "Content-Type": "application/json",
           },
         }
       );
 
       if (response.status === 200) {
-        // Refresh user data to get updated playlists
-        await updateUserInRedux("get");
+        // Update the playlist in Redux store
+        dispatch(updatePlaylist({
+          playlistId: playlistId,
+          updatedPlaylist: response.data
+        }));
+
+        // Also update the selected playlist in the modal
+        setSelectedPlaylist(response.data);
+
+        console.log('Playlist updated successfully:', response.data);
       }
     } catch (error) {
-      console.error('Error updating playlist:', error);
+      console.error('Error updating playlist:', error.response?.data || error.message);
+      throw error; // Re-throw so the modal can handle the error
     }
   };
+
+
 
   if (loading) {
     return (
@@ -215,7 +233,7 @@ const Playlists = () => {
       )}
 
       {/* Playlists Grid */}
-      {!user?.playlists || user.playlists.length === 0 ? (
+      {playlists?.length === 0 ? (
         <div className="text-center text-gray-400 mt-12">
           <div className="text-6xl mb-4">🎵</div>
           <p className="text-xl mb-4">No playlists yet</p>
@@ -223,7 +241,7 @@ const Playlists = () => {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {user.playlists.map((playlist) => (
+          {playlists.map((playlist) => (
             <div key={playlist.id} className="bg-gray-900 rounded-lg p-6 hover:bg-gray-800 transition-colors">
               <div className="flex justify-between items-start mb-4">
                 <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white text-2xl">
@@ -244,7 +262,7 @@ const Playlists = () => {
                 {playlist.songs?.length || 0} songs
               </p>
 
-              <button 
+              <button
                 onClick={() => openPlaylist(playlist)}
                 className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors"
               >
@@ -256,7 +274,7 @@ const Playlists = () => {
       )}
 
       {/* Playlist Modal */}
-      <PlaylistModal 
+      <PlaylistModal
         playlist={selectedPlaylist}
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

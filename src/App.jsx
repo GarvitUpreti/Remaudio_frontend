@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import axios from 'axios';
 import { useDispatch, useSelector } from "react-redux";
 import { setUser, logout } from "./store/userSlice";
+import { setPlaylists} from "./store/playlistSlice";
+import { setSongs} from "./store/songSlice";
 
 // Components
 import Sidebar from './components/Sidebar';
@@ -46,6 +48,59 @@ const App = () => {
     }
 
     // Validate token and fetch user data
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/songs/user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      console.log("API response:", response.data);
+      dispatch(setSongs(response.data));
+      console.log('User data loaded:', response.data);
+      
+    } catch (error) {
+      console.error('Token validation failed:', error);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('userEmail');
+      dispatch(logout());
+    } finally {
+      // Add minimum loading time for better UX
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+    }
+
+    try {
+      const response = await axios.get(
+        `http://localhost:3000/playlists/user/${userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      console.log("API response:", response.data);
+      dispatch(setPlaylists(response.data));
+      console.log('User data loaded:', response.data);
+      
+    } catch (error) {
+      console.error('Token validation failed:', error);
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('userEmail');
+      dispatch(logout());
+    } finally {
+      // Add minimum loading time for better UX
+      setTimeout(() => {
+        setLoading(false);
+      }, 2000);
+    }
+
+    
     try {
       const response = await axios.get(
         `http://localhost:3000/user/email/${userEmail}`,
@@ -139,9 +194,7 @@ const MainLayout = ({
             <Route 
               path="/songs" 
               element={
-                <Songs 
-                  setCurrentSong={setCurrentSong} 
-                />
+                <Songs />
               } 
             />
             <Route path="/playlists" element={<Playlists />} />
@@ -152,17 +205,7 @@ const MainLayout = ({
         </main>
       </div>
 
-      <MusicPlayer
-        currentSong={currentSong}
-        isPlaying={isPlaying}
-        setIsPlaying={setIsPlaying}
-        volume={volume}
-        setVolume={setVolume}
-        currentTime={currentTime}
-        setCurrentTime={setCurrentTime}
-        duration={duration}
-        setDuration={setDuration}
-      />
+      <MusicPlayer/>
     </>
   );
 };

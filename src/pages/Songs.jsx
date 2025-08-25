@@ -1,27 +1,31 @@
 import React, { useState, useEffect } from "react";
 import Song from "../components/Song";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setSongs, setCurrentSong, setIsPlaying } from "../store/musicSlice";
 
-const Songs = ({setCurrentSong }) => {
-  const [localSongs, setLocalSongs] = useState([]);
+const Songs = () => {
+  const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
-  //  Song
+  
+  // Get data from Redux store
+  const user = useSelector((state) => state.user.user);
+  const { songs: reduxSongs, currentSong } = useSelector((state) => state.music);
 
-    const user = useSelector((state) => state.user.user);
-
-
-    // whenever songs prop changes, update local state 
-    useEffect(() => {
+  // Update Redux store when user songs change
+  useEffect(() => {
     if (user?.songs) {
-      setLocalSongs(user.songs);
+      dispatch(setSongs(user.songs));
     } else {
-      setLocalSongs([]);
+      dispatch(setSongs([]));
     }
     setLoading(false);
-    }, [user]); // ✅ Run whenever user changes
+  }, [user, dispatch]);
 
   const handlePlaySong = (song) => {
-    setCurrentSong(song);
+    // Set the current song in Redux
+    dispatch(setCurrentSong(song));
+    // Start playing
+    dispatch(setIsPlaying(true));
   };
 
   if (loading) {
@@ -37,11 +41,11 @@ const Songs = ({setCurrentSong }) => {
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold text-white">Your Songs</h1>
         <div className="text-gray-400 text-sm">
-          {localSongs.length} {localSongs.length === 1 ? 'song' : 'songs'}
+          {reduxSongs.length} {reduxSongs.length === 1 ? 'song' : 'songs'}
         </div>
       </div>
 
-      {localSongs.length === 0 ? (
+      {reduxSongs.length === 0 ? (
         <div className="text-center text-gray-400 mt-12">
           <div className="mb-4">
             <svg
@@ -57,11 +61,12 @@ const Songs = ({setCurrentSong }) => {
         </div>
       ) : (
         <div className="space-y-2">
-          {localSongs.map((song) => (
+          {reduxSongs.map((song) => (
             <Song
               key={song.id}
               song={song}
               onPlay={handlePlaySong}
+              isCurrentSong={currentSong?.id === song.id}
             />
           ))}
         </div>
