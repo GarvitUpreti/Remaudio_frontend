@@ -8,18 +8,20 @@ const Songs = () => {
   const [loading, setLoading] = useState(true);
   
   // Get data from Redux store
-  const user = useSelector((state) => state.user.user);
+  const songlist = useSelector((state) => state.songs.list); 
   const { songs: reduxSongs, currentSong } = useSelector((state) => state.music);
+
+  dispatch(setSongs(songlist))
 
   // Update Redux store when user songs change
   useEffect(() => {
-    if (user?.songs) {
-      dispatch(setSongs(user.songs));
+    if (songlist) {
+      dispatch(setSongs(songlist));
     } else {
       dispatch(setSongs([]));
     }
     setLoading(false);
-  }, [user, dispatch]);
+  }, [songlist, dispatch]);
 
   const handlePlaySong = (song) => {
     // Set the current song in Redux

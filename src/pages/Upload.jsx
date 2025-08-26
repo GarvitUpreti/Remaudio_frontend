@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useDispatch } from 'react-redux';
-import { setUser } from '../store/userSlice'; // Adjust the path as needed
+import { setUser } from '../store/userSlice';
+import { addSong } from '../store/songSlice'; // Import addSong action
+import axios from 'axios'; // Import axios
 
 const Upload = () => {
   const dispatch = useDispatch();
@@ -8,7 +10,7 @@ const Upload = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [uploadedSong, setUploadedSong] = useState([]); // new state
+  const [uploadedSong, setUploadedSong] = useState([]);
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -59,22 +61,21 @@ const Upload = () => {
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/user/${userId}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
-          'Content-Type': 'application/json',
+      const response = await axios.patch(
+        `http://localhost:3000/user/${userId}`,
+        {
+          songToAdd: newFiles
         },
-        body: JSON.stringify({
-          songToAdd: newFiles  // ✅ send array of song IDs
-        }),
-      });
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
 
-      if (response.ok) {
-        const userData = await response.json();
-        dispatch(setUser(userData));
-      } else {
-        console.error('Failed to fetch user data');
+      if (response.status === 200) {
+        dispatch(setUser(response.data));
       }
     } catch (error) {
       console.error('Error updating user:', error);
@@ -89,37 +90,37 @@ const Upload = () => {
     setUploadProgress(0);
 
     try {
-      const xhr = new XMLHttpRequest();
-
-      xhr.upload.addEventListener('progress', (e) => {
-        if (e.lengthComputable) {
-          const progress = (e.loaded / e.total) * 100;
-          console.log('Upload progress:', progress); // Debug log
-          setUploadProgress(Math.round(progress));
+      const response = await axios.post(
+        'http://localhost:3000/songs/upload',
+        formData,
+        {
+          headers: {
+            'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
+            'Content-Type': 'multipart/form-data',
+          },
+          timeout: 300000, // 5 minutes timeout
+          onUploadProgress: (progressEvent) => {
+            const progress = (progressEvent.loaded / progressEvent.total) * 100;
+            console.log('Upload progress:', progress);
+            setUploadProgress(Math.round(progress));
+          },
         }
-      });
-
-      const response = await new Promise((resolve, reject) => {
-        xhr.onload = () => resolve(xhr);
-        xhr.onerror = () => reject(xhr);
-        xhr.ontimeout = () => reject(new Error('Upload timeout'));
-
-        xhr.open('POST', 'http://localhost:3000/songs/upload');
-        xhr.setRequestHeader('Authorization', `Bearer ${localStorage.getItem('accessToken')}`);
-        xhr.timeout = 300000; // 5 minutes timeout
-        xhr.send(formData);
-      });
+      );
 
       if (response.status === 200 || response.status === 201) {
-        const result = JSON.parse(response.responseText);
+        const result = response.data;
 
-        // ✅ only store array of IDs               
-        
+        // ✅ Add song to Redux store
+        dispatch(addSong(result));
+
+        // ✅ Update local state with song ID
         setUploadedFiles(prev => {
           const newFiles = [...prev, result.id];
           updateUserInRedux(newFiles);
           return newFiles;
         });
+
+        // ✅ Update uploaded songs display
         setUploadedSong(prev => {
           const newFiles = [...prev, result.name];
           return newFiles;
@@ -139,6 +140,7 @@ const Upload = () => {
 
   const clearUploadedFiles = () => {
     setUploadedFiles([]);
+    setUploadedSong([]);
   };
 
   return (

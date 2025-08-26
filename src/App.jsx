@@ -17,6 +17,7 @@ import Upload from './pages/Upload';
 import DeveloperNote from './pages/DeveloperNot2';
 import Auth3 from './pages/Auth3';
 import LoadingScreen from './components/LoadingScreen';
+import UserProfile from './pages/UserProfile';
 
 const App = () => {
   const dispatch = useDispatch();
@@ -200,6 +201,7 @@ const MainLayout = ({
             <Route path="/playlists" element={<Playlists />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/developer" element={<DeveloperNote />} />
+            <Route path="/userProfile" element={<UserProfile />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
