@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom'; // ✅ Remove BrowserRouter import
 import axios from 'axios';
 import { useDispatch, useSelector } from "react-redux";
 import { setUser, logout } from "./store/userSlice";
 import { setPlaylists} from "./store/playlistSlice";
 import { setSongs} from "./store/songSlice";
+import { useHostMultiplay } from './hooks/useHostMultiplay';
+import { useFollowerMultiplay } from './hooks/useFollowerMultiplay';
 
 // Components
 import Sidebar from './components/Sidebar';
@@ -18,17 +20,31 @@ import DeveloperNote from './pages/DeveloperNot2';
 import Auth3 from './pages/Auth3';
 import LoadingScreen from './components/LoadingScreen';
 import UserProfile from './pages/UserProfile';
+import Multiplay from './pages/Multiplay';
+import MultiplayStatus from './components/MultiplayStatus';
+
+// Multiplay hooks wrapper component
+const MultiplayProvider = ({ children }) => {
+  // Initialize multiplay hooks globally
+  useHostMultiplay();
+  useFollowerMultiplay();
+  
+  return (
+    <>
+      {children}
+      {/* Global multiplay status that appears on all pages */}
+      <MultiplayStatus />
+    </>
+  );
+};
 
 const App = () => {
   const dispatch = useDispatch();
   const { user, isAuthenticated } = useSelector((state) => state.user);
   
   const [loading, setLoading] = useState(true);
-  const [currentSong, setCurrentSong] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [volume, setVolume] = useState(1);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
+
 
   useEffect(() => {
     checkAuthStatus();
@@ -40,7 +56,6 @@ const App = () => {
     const userId = localStorage.getItem('userId');
 
     if (!token || !userEmail) {
-      // No token or email, user needs to authenticate
       setTimeout(() => {
         setLoading(false);
         dispatch(logout());
@@ -48,87 +63,39 @@ const App = () => {
       return;
     }
 
-    // Validate token and fetch user data
     try {
-      const response = await axios.get(
-        `http://localhost:3000/songs/user/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      
-      console.log("API response:", response.data);
-      dispatch(setSongs(response.data));
-      console.log('User data loaded:', response.data);
-      
-    } catch (error) {
-      console.error('Token validation failed:', error);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('userEmail');
-      dispatch(logout());
-    } finally {
-      // Add minimum loading time for better UX
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
-    }
+      // Fetch all data concurrently
+      const [songsResponse, playlistsResponse, userResponse] = await Promise.all([
+        axios.get(`${API_URL}/songs/user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API_URL}/playlists/user/${userId}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(`${API_URL}/user/email/${userEmail}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
 
-    try {
-      const response = await axios.get(
-        `http://localhost:3000/playlists/user/${userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      // Dispatch all data
+      dispatch(setSongs(songsResponse.data));
+      dispatch(setPlaylists(playlistsResponse.data));
+      dispatch(setUser(userResponse.data));
       
-      console.log("API response:", response.data);
-      dispatch(setPlaylists(response.data));
-      console.log('User data loaded:', response.data);
+      console.log('All data loaded successfully');
       
     } catch (error) {
-      console.error('Token validation failed:', error);
+      console.error('Data loading failed:', error);
       localStorage.removeItem('accessToken');
       localStorage.removeItem('userEmail');
+      localStorage.removeItem('userId');
       dispatch(logout());
     } finally {
-      // Add minimum loading time for better UX
-      setTimeout(() => {
-        setLoading(false);
-      }, 2000);
-    }
-
-    
-    try {
-      const response = await axios.get(
-        `http://localhost:3000/user/email/${userEmail}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      
-      console.log("API response:", response.data);
-      dispatch(setUser(response.data));
-      console.log('User data loaded:', response.data);
-      
-    } catch (error) {
-      console.error('Token validation failed:', error);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('userEmail');
-      dispatch(logout());
-    } finally {
-      // Add minimum loading time for better UX
       setTimeout(() => {
         setLoading(false);
       }, 2000);
     }
   };
-  
 
   // Show loading screen
   if (loading) {
@@ -140,41 +107,17 @@ const App = () => {
     return <Auth3 />;
   }
 
-  // Show main app if authenticated
+  // Show main app if authenticated - ✅ Remove double Router and SocketProvider
   return (
-    <Router>
-      <div className="h-screen bg-gray-900 text-white flex flex-col">
-        <MainLayout
-          user={user}
-          currentSong={currentSong}
-          setCurrentSong={setCurrentSong}
-          isPlaying={isPlaying}
-          setIsPlaying={setIsPlaying}
-          volume={volume}
-          setVolume={setVolume}
-          currentTime={currentTime}
-          setCurrentTime={setCurrentTime}
-          duration={duration}
-          setDuration={setDuration}
-        />
-      </div>
-    </Router>
+    <div className="h-screen bg-gray-900 text-white flex flex-col">
+      <MultiplayProvider>
+        <MainLayout user={user} />
+      </MultiplayProvider>
+    </div>
   );
 };
 
-const MainLayout = ({
-  user,
-  currentSong,
-  setCurrentSong,
-  isPlaying,
-  setIsPlaying,
-  volume,
-  setVolume,
-  currentTime,
-  setCurrentTime,
-  duration,
-  setDuration
-}) => {
+const MainLayout = ({ user }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
@@ -185,29 +128,23 @@ const MainLayout = ({
       />
 
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar
-          isOpen={isSidebarOpen}
-        />
+        <Sidebar isOpen={isSidebarOpen} />
 
         <main className="flex-1 bg-gray-800 overflow-y-auto">
           <Routes>
             <Route path="/" element={<Home />} />
-            <Route 
-              path="/songs" 
-              element={
-                <Songs />
-              } 
-            />
+            <Route path="/songs" element={<Songs />} />
             <Route path="/playlists" element={<Playlists />} />
             <Route path="/upload" element={<Upload />} />
             <Route path="/developer" element={<DeveloperNote />} />
             <Route path="/userProfile" element={<UserProfile />} />
+            <Route path="/multiplay" element={<Multiplay />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
       </div>
 
-      <MusicPlayer/>
+      <MusicPlayer />
     </>
   );
 };

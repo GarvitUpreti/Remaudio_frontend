@@ -17,6 +17,8 @@ const Auth3 = () => { // ✅ Remove prop parameter
   // const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(true);
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
+
 
   // Helper function to decode JWT token and extract email
   const decodeGoogleToken = (token) => {
@@ -37,7 +39,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
   const fetchUserInfo = async (userEmail, accessToken) => {
     try {
       const userRes = await axios.get(
-        `http://localhost:3000/user/email/${userEmail}`,
+        `${API_URL}/user/email/${userEmail}`,
         {
           headers: {
             Authorization: `Bearer ${accessToken}`,
@@ -120,7 +122,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
 
       let res;
       if (isLogin) {
-        res = await axios.post(`http://localhost:3000/auth/google/login`, {
+        res = await axios.post(`${API_URL}/auth/google/login`, {
            token: idToken
         });
       } else {
@@ -129,7 +131,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
           return;
         }
         
-        res = await axios.post(`http://localhost:3000/auth/google/signup`, {
+        res = await axios.post(`${API_URL}/auth/google/signup`, {
           token: idToken,
           name: username,
           password,
@@ -154,7 +156,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
     e.preventDefault();
     try {
       if (isLogin) {
-        const res = await axios.post(`http://localhost:3000/auth/login`, {
+        const res = await axios.post(`${API_URL}/auth/login`, {
           email,
           password,
         });
@@ -168,7 +170,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
         setMessage("✅ Success! You are logged in.");
         
       } else {
-        const res = await axios.post(`http://localhost:3000/auth/signup`, {
+        const res = await axios.post(`${API_URL}/auth/signup`, {
           email,
           name: username,
           password,

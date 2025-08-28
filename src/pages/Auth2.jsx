@@ -11,6 +11,8 @@ const Auth2 = () => {
   const [username, setUsername] = useState("");
   const [googleLoaded, setGoogleLoaded] = useState(false);
   const [user, setuser] = useState(null)
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
+
   let userRes;
 
   // Google auth initialization
@@ -73,7 +75,7 @@ const Auth2 = () => {
       let res;
       if (isLogin) {
         console.log(idToken)
-        res = await axios.post(`http://localhost:3000/auth/google/login`, {
+        res = await axios.post(`${API_URL}/auth/google/login`, {
            token: idToken
         });
       } else {
@@ -83,7 +85,7 @@ const Auth2 = () => {
           return;
         }
         
-        res = await axios.post(`http://localhost:3000/auth/google/signup`, {
+        res = await axios.post(`${API_URL}/auth/google/signup`, {
           token: idToken,
           name:username,
           password,
@@ -94,7 +96,7 @@ const Auth2 = () => {
       localStorage.setItem("accessToken", accessToken);
       localStorage.setItem("refreshToken", refreshToken);
       userRes = await axios.get(
-          `http://localhost:3000/user/email/${email}`,
+          `${API_URL}/user/email/${email}`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -115,7 +117,7 @@ const Auth2 = () => {
     e.preventDefault();
     try {
       if (isLogin) {
-        const res = await axios.post(`http://localhost:3000/auth/login`, {
+        const res = await axios.post(`${API_URL}/auth/login`, {
           email,
           password,
         });
@@ -126,7 +128,7 @@ const Auth2 = () => {
         
 
         userRes = await axios.get(
-          `http://localhost:3000/user/email/${email}`,
+          `${API_URL}/user/email/${email}`,
           {
             headers: {
               Authorization: `Bearer ${accessToken}`,
@@ -139,7 +141,7 @@ const Auth2 = () => {
         
       } else {
         // Signup logic - only username and password, no email
-        const res = await axios.post(`http://localhost:3000/auth/signup`, {
+        const res = await axios.post(`${API_URL}/auth/signup`, {
           email,
           name:username,
           password,

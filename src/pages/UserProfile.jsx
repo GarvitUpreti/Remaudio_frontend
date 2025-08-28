@@ -16,6 +16,7 @@ const UserProfile = () => {
   });
   const [isUpdating, setIsUpdating] = useState(false);
   const [showPasswordFields, setShowPasswordFields] = useState(false);
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   if (!user) {
     return (
@@ -93,7 +94,7 @@ const UserProfile = () => {
 
       const accessToken = localStorage.getItem('accessToken');
       const response = await axios.patch(
-        `http://localhost:3000/user/${user.id}`,
+        `${API_URL}/user/${user.id}`,
         updateData,
         {
           headers: {

@@ -19,6 +19,8 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const menuRef = useRef(null);
   const [addToPlaylistModalOpen, setAddToPlaylistModalOpen] = useState(false); // Add this state
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
+
 
   // Close menu if clicked outside
   useEffect(() => {
@@ -61,7 +63,7 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
 
     try {
       const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch(`http://localhost:3000/songs/${song.id}`, {
+      const response = await fetch(`${API_URL}/songs/${song.id}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
@@ -134,7 +136,7 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
         return;
       }
 
-      const response = await fetch(`http://localhost:3000/songs/${song.id}`, {
+      const response = await fetch(`${API_URL}/songs/${song.id}`, {
         method: 'PATCH',
         headers: {
           'Authorization': `Bearer ${accessToken}`,

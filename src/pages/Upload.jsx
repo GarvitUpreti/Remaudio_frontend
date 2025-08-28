@@ -11,6 +11,7 @@ const Upload = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadedSong, setUploadedSong] = useState([]);
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -62,7 +63,7 @@ const Upload = () => {
       }
 
       const response = await axios.patch(
-        `http://localhost:3000/user/${userId}`,
+        `${API_URL}/user/${userId}`,
         {
           songToAdd: newFiles
         },
@@ -91,7 +92,7 @@ const Upload = () => {
 
     try {
       const response = await axios.post(
-        'http://localhost:3000/songs/upload',
+         `${API_URL}/songs/upload`,
         formData,
         {
           headers: {

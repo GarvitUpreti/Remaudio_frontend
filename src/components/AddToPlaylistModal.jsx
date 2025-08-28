@@ -8,7 +8,8 @@ const AddToPlaylistModal = ({ isOpen, onClose, song }) => {
   const dispatch = useDispatch();
   const [isAdding, setIsAdding] = useState(false);
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
-
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
+  
   const handleAddToPlaylist = async (playlist) => {
     setIsAdding(true);
     setSelectedPlaylist(playlist.id);
@@ -17,7 +18,7 @@ const AddToPlaylistModal = ({ isOpen, onClose, song }) => {
       const accessToken = localStorage.getItem('accessToken');
       
       const response = await axios.patch(
-        `http://localhost:3000/playlists/${playlist.id}`,
+        `${API_URL}/playlists/${playlist.id}`,
         {
           songIdsToAdd: [song.id]
         },

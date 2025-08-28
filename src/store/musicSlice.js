@@ -2,12 +2,19 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
-  songs: [], // Array of song objects
-  currentSong: null, // Current song object
-  currentVolume: 0.7, // Volume level (0-1)
-  currentlyPlayingOn: 0, // Current time in seconds
-  isPlaying: false, // Is currently playing
-  repeatMode: 'none', // 'none', 'all', 'one'
+  songs: [],
+  currentSong: null,
+  currentVolume: 0.7,
+  currentlyPlayingOn: 0,
+  isPlaying: false,
+  repeatMode: 'none',
+  // Multiplay state
+  multiplay: {
+    isActive: false,
+    roomId: null,
+    role: null, // 'host' | 'follower'
+    isInMultiplayMode: false,
+  }
 };
 
 const musicSlice = createSlice({
@@ -19,7 +26,7 @@ const musicSlice = createSlice({
     },
     setCurrentSong: (state, action) => {
       state.currentSong = action.payload;
-      state.currentlyPlayingOn = 0; // Reset time when changing song
+      state.currentlyPlayingOn = 0;
     },
     setCurrentVolume: (state, action) => {
       state.currentVolume = action.payload;
@@ -41,13 +48,10 @@ const musicSlice = createSlice({
       
       let nextIndex;
       if (state.repeatMode === 'one') {
-        // Stay on the same song
         nextIndex = currentIndex;
       } else if (state.repeatMode === 'all') {
-        // Loop to beginning if at end
         nextIndex = currentIndex === state.songs.length - 1 ? 0 : currentIndex + 1;
       } else {
-        // No repeat - stop at end
         nextIndex = currentIndex === state.songs.length - 1 ? currentIndex : currentIndex + 1;
         if (nextIndex === currentIndex && currentIndex === state.songs.length - 1) {
           state.isPlaying = false;
@@ -68,6 +72,31 @@ const musicSlice = createSlice({
       state.currentSong = state.songs[prevIndex];
       state.currentlyPlayingOn = 0;
     },
+    
+    // Multiplay reducers
+    setMultiplayRoom: (state, action) => {
+      state.multiplay.isActive = true;
+      state.multiplay.roomId = action.payload.roomId;
+      state.multiplay.role = action.payload.role;
+      state.multiplay.isInMultiplayMode = true;
+    },
+    
+    leaveMultiplayRoom: (state) => {
+      state.multiplay.isActive = false;
+      state.multiplay.roomId = null;
+      state.multiplay.role = null;
+      state.multiplay.isInMultiplayMode = false;
+    },
+    
+    // For followers to update their state without triggering events
+    syncFromMultiplay: (state, action) => {
+      const { currentSong, currentVolume, currentlyPlayingOn, isPlaying, repeatMode } = action.payload;
+      state.currentSong = currentSong;
+      state.currentVolume = currentVolume;
+      state.currentlyPlayingOn = currentlyPlayingOn;
+      state.isPlaying = isPlaying;
+      state.repeatMode = repeatMode;
+    },
   },
 });
 
@@ -80,6 +109,9 @@ export const {
   setRepeatMode,
   playNextSong,
   playPreviousSong,
+  setMultiplayRoom,
+  leaveMultiplayRoom,
+  syncFromMultiplay,
 } = musicSlice.actions;
 
 export default musicSlice.reducer;

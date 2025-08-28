@@ -14,6 +14,8 @@ const Playlists = () => {
 
   const user = useSelector((state) => state.user.user);
   const playlists = useSelector((state) => state.playlists.list);
+  const API_URL = import.meta.env.VITE_BACKEND_URL;
+
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -36,7 +38,7 @@ const Playlists = () => {
 
     try {
       const response = await axios.post(
-        "http://localhost:3000/playlists",
+        "${API_URL}/playlists",
         {
           name: newPlaylistName,
         },
@@ -74,7 +76,7 @@ const Playlists = () => {
         return;
       }
 
-      const url = `http://localhost:3000/user/${userId}`;
+      const url = `${API_URL}/user/${userId}`;
       const headers = {
         Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
         "Content-Type": "application/json",
@@ -82,7 +84,7 @@ const Playlists = () => {
 
       let response;
       if (flag === "get") {
-        response = await axios.get(`http://localhost:3000/user/id/${userId}`, { headers });
+        response = await axios.get(`${API_URL}/user/id/${userId}`, { headers });
       } else {
         response = await axios.patch(
           url,
@@ -112,7 +114,7 @@ const Playlists = () => {
 
     try {
       const response = await axios.delete(
-        `http://localhost:3000/playlists/${playlistId}`,
+        `${API_URL}/playlists/${playlistId}`,
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -145,7 +147,7 @@ const Playlists = () => {
       console.log('Updating playlist:', playlistId, updatedData);
 
       const response = await axios.patch(
-        `http://localhost:3000/playlists/${playlistId}`,
+        `${API_URL}/playlists/${playlistId}`,
         updatedData,
         {
           headers: {

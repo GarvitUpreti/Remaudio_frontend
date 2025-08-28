@@ -11,7 +11,7 @@ const Songs = () => {
   const songlist = useSelector((state) => state.songs.list); 
   const { songs: reduxSongs, currentSong } = useSelector((state) => state.music);
 
-  dispatch(setSongs(songlist))
+  // dispatch(setSongs(songlist))
 
   // Update Redux store when user songs change
   useEffect(() => {

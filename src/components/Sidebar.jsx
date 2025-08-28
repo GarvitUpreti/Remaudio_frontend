@@ -13,6 +13,7 @@ const Sidebar = ({ isOpen }) => { // ✅ Remove setIsAuthenticated and setUser p
     { name: 'Songs', path: '/songs' },
     { name: 'Playlists', path: '/playlists' },
     { name: 'Upload Songs', path: '/upload' },
+    { name: 'Multiplay', path: '/multiplay' },
   ];
 
   const handleLogout = () => {
