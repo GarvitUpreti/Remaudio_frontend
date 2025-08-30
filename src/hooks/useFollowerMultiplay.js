@@ -4,91 +4,144 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useSocket } from '../contexts/SocketContext';
 import { syncFromMultiplay, leaveMultiplayRoom } from '../store/musicSlice';
 
-const nowMs = () =>
-  (typeof performance !== 'undefined' && performance.now ? performance.now() : Date.now());
+const nowMs = () => performance.now();
 
 export const useFollowerMultiplay = () => {
-  const { socket } = useSocket();
+  const { socket, networkStats } = useSocket();
   const dispatch = useDispatch();
   const { multiplay } = useSelector(state => state.music);
-  const isUpdatingRef = useRef(false); // Prevent flickering
+  const audioRef = useRef(null); // We'll pass this from the audio component
+  const throttleRef = useRef(false);
+  const performanceRef = useRef({
+    avgProcessingDelay: 150, // Start with 150ms estimate
+    measurements: []
+  });
+
+  // Function to measure actual audio processing delay
+  const measureAudioDelay = (targetTime) => {
+    const measureStart = nowMs();
+    
+    // Use requestAnimationFrame to measure when audio actually updates
+    requestAnimationFrame(() => {
+      if (audioRef.current) {
+        const actualDelay = nowMs() - measureStart;
+        
+        // Store delay measurements (keep last 5)
+        performanceRef.current.measurements.push(actualDelay);
+        if (performanceRef.current.measurements.length > 5) {
+          performanceRef.current.measurements.shift();
+        }
+        
+        // Update average processing delay
+        const measurements = performanceRef.current.measurements;
+        performanceRef.current.avgProcessingDelay = 
+          measurements.reduce((a, b) => a + b, 0) / measurements.length;
+        
+        console.log(`⏱️ Audio processing delay: ${actualDelay.toFixed(1)}ms | Avg: ${performanceRef.current.avgProcessingDelay.toFixed(1)}ms`);
+      }
+    });
+  };
 
   useEffect(() => {
     if (!socket || !multiplay.isActive || multiplay.role !== 'follower') return;
 
     const handleSyncEvent = (data) => {
-      if (!data) return;
+      if (!data || throttleRef.current) return;
 
+      const eventReceiveTime = nowMs(); // Capture immediately
+      
       const {
-        timestamp: hostSendTime, // host's monotonic stamp (ms)
         currentSong,
         currentVolume,
-        currentlyPlayingOn: hostPlaybackTime, // seconds
+        currentlyPlayingOn: hostPlaybackTime,
         isPlaying,
         repeatMode,
-        action, // play/pause/seek/newSong/volume/heartbeat
+        action,
       } = data;
 
-      // ⚠️ Do as little work as possible before we capture follower's "apply time".
-      // Capture follower time at the LAST moment, right before we compute + dispatch.
-      const followerApplyTime = nowMs(); // follower's monotonic stamp (ms)
-      const networkDelay = (followerApplyTime - hostSendTime) / 1000; // seconds
+      // Calculate network delay from RTT
+      let networkDelay = 0;
+      if (networkStats.averageRtt > 0) {
+        networkDelay = networkStats.averageRtt / 2000; // Convert to seconds
+      }
 
-      let adjustedPlaybackTime;
+      // Estimate total processing delay (React + Audio)
+      const processingDelay = performanceRef.current.avgProcessingDelay / 1000; // Convert to seconds
+      
+      // Device-specific compensation
+      const isMobile = /Mobi|Android/i.test(navigator.userAgent);
+      const deviceCompensation = isMobile ? 0.05 : 0.02; // Extra mobile delay
+      
+      // Calculate predictive playback time
+      let predictivePlaybackTime;
+      
       switch (action) {
         case 'play':
         case 'resume':
-          adjustedPlaybackTime = hostPlaybackTime + networkDelay + 120;
+          // Predict where host will be when our audio actually starts
+          predictivePlaybackTime = hostPlaybackTime + networkDelay + processingDelay + deviceCompensation;
           break;
+          
         case 'newSong':
-          adjustedPlaybackTime = hostPlaybackTime + networkDelay ; // Add small buffer to account for delays
+          // For new songs, add minimal compensation
+          predictivePlaybackTime = hostPlaybackTime + + networkDelay + processingDelay + deviceCompensation;
           break;
+          
         case 'pause':
-          // When host paused, clock shouldn't advance on follower.
-          adjustedPlaybackTime = hostPlaybackTime;
-          break;
         case 'seek':
-          // If you know seek happens while playing, you could add networkDelay.
-          // Keeping your prior intent: apply host time without advancing.
-          adjustedPlaybackTime = hostPlaybackTime;
+          predictivePlaybackTime = hostPlaybackTime + + networkDelay + processingDelay + deviceCompensation;
           break;
         case 'volume':
-          adjustedPlaybackTime =  hostPlaybackTime;
+          // Use exact time for these actions
+          predictivePlaybackTime = hostPlaybackTime;
           break;
+          
+        case 'heartbeat':
         default:
-          // Heartbeat or unknown → advance only if playing.
-          adjustedPlaybackTime = isPlaying ? hostPlaybackTime + networkDelay : hostPlaybackTime;
+          if (isPlaying) {
+            // Continuous sync with full compensation
+            predictivePlaybackTime = hostPlaybackTime + networkDelay + (processingDelay * 1);
+          } else {
+            predictivePlaybackTime = hostPlaybackTime;
+          }
       }
 
-      adjustedPlaybackTime = Math.max(0, adjustedPlaybackTime);
+      // Clamp to non-negative
+      predictivePlaybackTime = Math.max(0, predictivePlaybackTime);
 
-      // Add the requested +0.2 seconds before dispatch (and clamp to >= 0)
-      const playbackToDispatch = Math.max(0, adjustedPlaybackTime);
+      // Enhanced debug logging
+      const syncDebug = {
+        action,
+        hostTime: hostPlaybackTime.toFixed(3) + 's',
+        networkDelay: (networkDelay * 1000).toFixed(1) + 'ms',
+        processingDelay: (processingDelay * 1000).toFixed(1) + 'ms',
+        deviceComp: (deviceCompensation * 1000).toFixed(1) + 'ms',
+        finalTime: predictivePlaybackTime.toFixed(3) + 's',
+        compensation: ((predictivePlaybackTime - hostPlaybackTime) * 1000).toFixed(1) + 'ms',
+        device: isMobile ? '📱' : '💻'
+      };
+      
+      console.log('🎯 Predictive Sync:', syncDebug);
 
-      // Prevent rapid updates that cause flickering
-      if (!isUpdatingRef.current) {
-        isUpdatingRef.current = true;
+      // Start delay measurement
+      measureAudioDelay(predictivePlaybackTime);
 
-        // Debug (optional)
-        // console.log(
-        //   `📡 Delay: ${networkDelay.toFixed(3)}s | Host: ${hostPlaybackTime.toFixed(3)}s | ` +
-        //   `Adj: ${adjustedPlaybackTime.toFixed(3)}s | Disp: ${playbackToDispatch.toFixed(3)}s | Action: ${action}`
-        // );
+      // Throttle updates
+      throttleRef.current = true;
+      setTimeout(() => {
+        throttleRef.current = false;
+      }, 25); // Even faster throttle
 
-        dispatch(
-          syncFromMultiplay({
-            currentSong,
-            currentVolume,
-            currentlyPlayingOn: playbackToDispatch,
-            isPlaying,
-            repeatMode,
-          })
-        );
-
-        setTimeout(() => {
-          isUpdatingRef.current = false;
-        }, 100);
-      }
+      // Dispatch with predictive timing
+      dispatch(
+        syncFromMultiplay({
+          currentSong,
+          currentVolume,
+          currentlyPlayingOn: predictivePlaybackTime,
+          isPlaying,
+          repeatMode,
+        })
+      );
     };
 
     const handleRoomClosed = (data) => {
@@ -103,5 +156,12 @@ export const useFollowerMultiplay = () => {
       socket.off('sync_event', handleSyncEvent);
       socket.off('room_closed', handleRoomClosed);
     };
-  }, [socket, dispatch, multiplay.isActive, multiplay.role]);
+  }, [socket, dispatch, multiplay.isActive, multiplay.role, networkStats]);
+
+  // Return ref setter for audio element
+  return {
+    setAudioRef: (ref) => {
+      audioRef.current = ref;
+    }
+  };
 };

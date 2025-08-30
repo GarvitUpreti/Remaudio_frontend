@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom'; // ✅ Remove BrowserRouter import
-import axios from 'axios';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useDispatch, useSelector } from "react-redux";
-import { setUser, logout } from "./store/userSlice";
-import { setPlaylists} from "./store/playlistSlice";
-import { setSongs} from "./store/songSlice";
+import axios from "axios";
+
+import { logout, setUser } from "./store/userSlice";
+import { setPlaylists } from "./store/playlistSlice";
+import { setSongs } from "./store/songSlice";
+
 import { useHostMultiplay } from './hooks/useHostMultiplay';
 import { useFollowerMultiplay } from './hooks/useFollowerMultiplay';
 
@@ -23,16 +25,13 @@ import UserProfile from './pages/UserProfile';
 import Multiplay from './pages/Multiplay';
 import MultiplayStatus from './components/MultiplayStatus';
 
-// Multiplay hooks wrapper component
 const MultiplayProvider = ({ children }) => {
-  // Initialize multiplay hooks globally
   useHostMultiplay();
   useFollowerMultiplay();
   
   return (
     <>
       {children}
-      {/* Global multiplay status that appears on all pages */}
       <MultiplayStatus />
     </>
   );
@@ -40,84 +39,74 @@ const MultiplayProvider = ({ children }) => {
 
 const App = () => {
   const dispatch = useDispatch();
-  const { user, isAuthenticated } = useSelector((state) => state.user);
-  
+  const { isAuthenticated } = useSelector((state) => state.user);
   const [loading, setLoading] = useState(true);
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
-
   useEffect(() => {
-    checkAuthStatus();
-  }, []);
-
-  const checkAuthStatus = async () => {
-    const token = localStorage.getItem('accessToken');
-    const userEmail = localStorage.getItem('userEmail');
-    const userId = localStorage.getItem('userId');
+    const token = localStorage.getItem("accessToken");
+    const userEmail = localStorage.getItem("userEmail");
 
     if (!token || !userEmail) {
-      setTimeout(() => {
-        setLoading(false);
-        dispatch(logout());
-      }, 2000);
+      dispatch(logout());
+      setLoading(false);
       return;
     }
 
-    try {
-      // Fetch all data concurrently
-      const [songsResponse, playlistsResponse, userResponse] = await Promise.all([
-        axios.get(`${API_URL}/songs/user/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${API_URL}/playlists/user/${userId}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        }),
-        axios.get(`${API_URL}/user/email/${userEmail}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        })
-      ]);
+    const restoreSession = async () => {
+      try {
+        // ✅ Fetch user
+        const userRes = await axios.get(`${API_URL}/user/email/${userEmail}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-      // Dispatch all data
-      dispatch(setSongs(songsResponse.data));
-      dispatch(setPlaylists(playlistsResponse.data));
-      dispatch(setUser(userResponse.data));
-      
-      console.log('All data loaded successfully');
-      
-    } catch (error) {
-      console.error('Data loading failed:', error);
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('userEmail');
-      localStorage.removeItem('userId');
-      dispatch(logout());
-    } finally {
-      setTimeout(() => {
+        const userId = userRes.data.id;
+        localStorage.setItem("userId", userId);
+
+        // ✅ Fetch songs + playlists in parallel
+        const [songsRes, playlistsRes] = await Promise.all([
+          axios.get(`${API_URL}/songs/user/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          axios.get(`${API_URL}/playlists/user/${userId}`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
+
+        // ✅ Dispatch everything to Redux
+        dispatch(setUser(userRes.data));
+        dispatch(setSongs(songsRes.data));
+        dispatch(setPlaylists(playlistsRes.data));
+
+      } catch (err) {
+        console.error("❌ Failed to restore session:", err);
+        dispatch(logout());
+      } finally {
         setLoading(false);
-      }, 2000);
-    }
-  };
+      }
+    };
 
-  // Show loading screen
+    restoreSession();
+  }, [dispatch, API_URL]);
+
   if (loading) {
     return <LoadingScreen />;
   }
 
-  // Show auth page if not authenticated
   if (!isAuthenticated) {
     return <Auth3 />;
   }
 
-  // Show main app if authenticated - ✅ Remove double Router and SocketProvider
   return (
     <div className="h-screen bg-gray-900 text-white flex flex-col">
       <MultiplayProvider>
-        <MainLayout user={user} />
+        <MainLayout />
       </MultiplayProvider>
     </div>
   );
 };
 
-const MainLayout = ({ user }) => {
+const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (

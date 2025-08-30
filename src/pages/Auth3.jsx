@@ -4,6 +4,8 @@ import image from '../assets/image.png';
 import logo from '../assets/remaudio_logo.png';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/userSlice';
+import { setSongs } from "../store/songSlice";           // Add this
+import { setPlaylists } from "../store/playlistSlice";   // Add this
 
 const Auth3 = () => { // ✅ Remove prop parameter
   const dispatch = useDispatch();
@@ -37,28 +39,53 @@ const Auth3 = () => { // ✅ Remove prop parameter
 
   // Helper function to fetch user info
   const fetchUserInfo = async (userEmail, accessToken) => {
-    try {
-      const userRes = await axios.get(
-        `${API_URL}/user/email/${userEmail}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-      localStorage.setItem("userEmail", userEmail);
-      localStorage.setItem("userId", userRes.data.id); // Store user ID for future use
-      console.log("User id:", userRes.data.id);
-      
-      // ✅ Only dispatch to Redux - this will trigger App component re-render
-      dispatch(setUser(userRes.data));
-      console.log("User data dispatched to Redux:", userRes.data);
-      
-    } catch (error) {
-      console.error("Error fetching user info:", error);
-      setMessage("⚠️ Login successful but failed to fetch user info");
-    }
-  };
+  try {
+    const userRes = await axios.get(
+      `${API_URL}/user/email/${userEmail}`,
+      {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    
+    localStorage.setItem("userEmail", userEmail);
+    localStorage.setItem("userId", userRes.data.id); // Store user ID for future use
+    console.log("User id:", userRes.data.id);
+    
+    // Load user's songs and playlists
+    console.log("🚀 Loading user's songs and playlists...");
+    const [songsResponse, playlistsResponse] = await Promise.all([
+      axios.get(`${API_URL}/songs/user/${userRes.data.id}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      }),
+      axios.get(`${API_URL}/playlists/user/${userRes.data.id}`, {
+        headers: { Authorization: `Bearer ${accessToken}` }
+      })
+    ]);
+
+    console.log("📦 Data loaded:", {
+      songs: songsResponse.data.length,
+      playlists: playlistsResponse.data.length,
+      user: userRes.data.email
+    });
+
+    // ✅ Dispatch all data to Redux
+    dispatch(setUser(userRes.data));
+    dispatch(setSongs(songsResponse.data));
+    dispatch(setPlaylists(playlistsResponse.data));
+    
+    console.log("✅ All data dispatched to Redux:", {
+      user: userRes.data.email,
+      songsCount: songsResponse.data.length,
+      playlistsCount: playlistsResponse.data.length
+    });
+    
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    setMessage("⚠️ Login successful but failed to fetch user info");
+  }
+};
 
   // Google auth initialization
   useEffect(() => {
