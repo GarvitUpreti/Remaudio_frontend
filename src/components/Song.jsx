@@ -3,12 +3,12 @@ import { useSelector, useDispatch } from "react-redux";
 import { removeSong, setSongs } from "../store/songSlice";
 import { updatePlaylist } from "../store/playlistSlice";
 import { updateUser } from "../store/userSlice";
-import AddToPlaylistModal from "../components/AddToPlaylistModal"; // Add this import
+import AddToPlaylistModal from "../components/AddToPlaylistModal";
 
 const Song = ({ song, onPlay, isCurrentSong }) => {
   const { isPlaying } = useSelector((state) => state.music);
   const { list: playlists } = useSelector((state) => state.playlists);
-  const { list: songs } = useSelector((state) => state.songs); // Add this line
+  const { list: songs } = useSelector((state) => state.songs);
   const { user } = useSelector((state) => state.user);
   const dispatch = useDispatch();
 
@@ -18,9 +18,8 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const menuRef = useRef(null);
-  const [addToPlaylistModalOpen, setAddToPlaylistModalOpen] = useState(false); // Add this state
+  const [addToPlaylistModalOpen, setAddToPlaylistModalOpen] = useState(false);
   const API_URL = import.meta.env.VITE_BACKEND_URL;
-
 
   // Close menu if clicked outside
   useEffect(() => {
@@ -75,16 +74,13 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
         throw new Error('Failed to delete song');
       }
 
-      // Remove song from Redux state
       dispatch(removeSong(song.id));
 
-      // Update user's songs list
       if (user && user.songs) {
         const updatedUserSongs = user.songs.filter(s => s.id !== song.id);
         dispatch(updateUser({ songs: updatedUserSongs }));
       }
 
-      // Remove song from all playlists that contain it
       playlists.forEach(playlist => {
         if (playlist.songs && playlist.songs.some(s => s.id === song.id)) {
           const updatedSongs = playlist.songs.filter(s => s.id !== song.id);
@@ -107,7 +103,7 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
   const handleEditSong = (e) => {
     e.stopPropagation();
     setEditForm({
-      name: song.name.replace(/\.[^/.]+$/, ""), // Remove file extension
+      name: song.name.replace(/\.[^/.]+$/, ""),
       artist: song.artist
     });
     setEditModalOpen(true);
@@ -151,13 +147,11 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
 
       const updatedSong = await response.json();
 
-      // Update song in songs list - Fix: use component-level songs instead of useSelector
       const updatedSongsList = songs.map(s =>
         s.id === song.id ? updatedSong : s
       );
       dispatch(setSongs(updatedSongsList));
 
-      // Update user's songs list
       if (user && user.songs) {
         const updatedUserSongs = user.songs.map(s =>
           s.id === song.id ? updatedSong : s
@@ -165,7 +159,6 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
         dispatch(updateUser({ songs: updatedUserSongs }));
       }
 
-      // Update song in all playlists that contain it
       playlists.forEach(playlist => {
         if (playlist.songs && playlist.songs.some(s => s.id === song.id)) {
           const updatedPlaylistSongs = playlist.songs.map(s =>
@@ -190,23 +183,23 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
 
   const handleAddToPlaylist = (e) => {
     e.stopPropagation();
-    setAddToPlaylistModalOpen(true); // Open the modal instead of console.log
+    setAddToPlaylistModalOpen(true);
     setMenuOpen(false);
   };
 
   return (
     <>
       <div
-        className={`p-4 rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-between group
+        className={`p-3 sm:p-4 rounded-lg transition-all duration-200 cursor-pointer flex items-center justify-between group
         ${isCurrentSong
             ? "bg-blue-900/30 border border-blue-500/50 hover:bg-blue-900/40"
             : "bg-gray-900 hover:bg-gray-800"
           }`}
         onClick={handleSongClick}
       >
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-3 sm:space-x-4 flex-1 min-w-0">
           {/* Cover Image */}
-          <div className="relative w-12 h-12 bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden">
+          <div className="relative w-10 h-10 sm:w-12 sm:h-12 bg-gray-700 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0">
             {song.coverImgURL ? (
               <img
                 src={song.coverImgURL}
@@ -215,7 +208,7 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
               />
             ) : (
               <svg
-                className="w-6 h-6 text-gray-400"
+                className="w-4 h-4 sm:w-6 sm:h-6 text-gray-400"
                 fill="currentColor"
                 viewBox="0 0 24 24"
               >
@@ -226,18 +219,18 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
             {/* Overlay for play state */}
             {isCurrentSong && isPlaying && (
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
-                <div className="flex space-x-1">
-                  <div className="w-1 h-3 bg-blue-400 rounded animate-pulse"></div>
+                <div className="flex space-x-0.5 sm:space-x-1">
+                  <div className="w-0.5 sm:w-1 h-2 sm:h-3 bg-blue-400 rounded animate-pulse"></div>
                   <div
-                    className="w-1 h-4 bg-blue-400 rounded animate-pulse"
+                    className="w-0.5 sm:w-1 h-3 sm:h-4 bg-blue-400 rounded animate-pulse"
                     style={{ animationDelay: "0.1s" }}
                   ></div>
                   <div
-                    className="w-1 h-2 bg-blue-400 rounded animate-pulse"
+                    className="w-0.5 sm:w-1 h-1.5 sm:h-2 bg-blue-400 rounded animate-pulse"
                     style={{ animationDelay: "0.2s" }}
                   ></div>
                   <div
-                    className="w-1 h-3 bg-blue-400 rounded animate-pulse"
+                    className="w-0.5 sm:w-1 h-2 sm:h-3 bg-blue-400 rounded animate-pulse"
                     style={{ animationDelay: "0.3s" }}
                   ></div>
                 </div>
@@ -246,7 +239,7 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
             {isCurrentSong && !isPlaying && (
               <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-lg">
                 <svg
-                  className="w-4 h-4 text-blue-400"
+                  className="w-3 h-3 sm:w-4 sm:h-4 text-blue-400"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -257,39 +250,39 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
           </div>
 
           {/* Song Info */}
-          <div>
+          <div className="min-w-0 flex-1">
             <h3
-              className={`font-medium transition-colors ${isCurrentSong ? "text-blue-400" : "text-white"
+              className={`font-medium transition-colors truncate text-sm sm:text-base ${isCurrentSong ? "text-blue-400" : "text-white"
                 }`}
             >
               {song.name.replace(/\.[^/.]+$/, "")}
             </h3>
-            <p className="text-gray-400 text-sm">
+            <p className="text-gray-400 text-xs sm:text-sm truncate">
               {getDisplayArtist(song.artist)}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-4 relative" ref={menuRef}>
+        <div className="flex items-center space-x-2 sm:space-x-4 relative flex-shrink-0" ref={menuRef}>
           {/* Duration */}
-          <span className="text-gray-400 text-sm min-w-[3rem] text-right">
+          <span className="text-gray-400 text-xs sm:text-sm min-w-[2.5rem] sm:min-w-[3rem] text-right">
             {formatDuration(song.duration)}
           </span>
 
           {/* Play Button */}
           <button
-            className={`transition-all duration-200 ${isCurrentSong
+            className={`transition-all duration-200 p-1 ${isCurrentSong
               ? "text-blue-400 hover:text-blue-300 opacity-100"
               : "text-gray-400 hover:text-blue-400 opacity-0 group-hover:opacity-100"
               }`}
             onClick={handlePlayButtonClick}
           >
             {isCurrentSong && isPlaying ? (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
               </svg>
             ) : (
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M8 5v14l11-7z" />
               </svg>
             )}
@@ -297,35 +290,35 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
 
           {/* More options button */}
           <button
-            className="text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-200"
+            className="text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-200 p-1"
             onClick={(e) => {
               e.stopPropagation();
               setMenuOpen(!menuOpen);
             }}
           >
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z" />
             </svg>
           </button>
 
           {/* Dropdown Menu */}
           {menuOpen && (
-            <div className="absolute right-0 top-8 bg-gray-800 text-white rounded-lg shadow-lg py-2 w-40 z-10">
+            <div className="absolute right-0 top-8 sm:top-10 bg-gray-800 text-white rounded-lg shadow-xl py-2 w-36 sm:w-40 z-20 border border-gray-700 animate-fade-in">
               <button
-                className={`w-full text-left px-4 py-2 hover:bg-gray-700 ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`w-full text-left px-3 sm:px-4 py-2 hover:bg-gray-700 text-sm transition-colors ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={handleDeleteSong}
                 disabled={isDeleting}
               >
                 {isDeleting ? 'Deleting...' : 'Delete Song'}
               </button>
               <button
-                className="w-full text-left px-4 py-2 hover:bg-gray-700"
+                className="w-full text-left px-3 sm:px-4 py-2 hover:bg-gray-700 text-sm transition-colors"
                 onClick={handleAddToPlaylist}
               >
                 Add to Playlist
               </button>
               <button
-                className="w-full text-left px-4 py-2 hover:bg-gray-700"
+                className="w-full text-left px-3 sm:px-4 py-2 hover:bg-gray-700 text-sm transition-colors"
                 onClick={handleEditSong}
               >
                 Edit Song
@@ -337,52 +330,54 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
 
       {/* Edit Song Modal */}
       {editModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 rounded-lg p-6 w-96">
-            <h2 className="text-xl font-bold text-white mb-4">Edit Song</h2>
-            <form onSubmit={handleUpdateSong}>
-              <div className="mb-4">
-                <label className="block text-gray-300 text-sm font-medium mb-2">
-                  Song Name
-                </label>
-                <input
-                  type="text"
-                  value={editForm.name}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter song name"
-                />
-              </div>
-              <div className="mb-6">
-                <label className="block text-gray-300 text-sm font-medium mb-2">
-                  Artist
-                </label>
-                <input
-                  type="text"
-                  value={editForm.artist}
-                  onChange={(e) => setEditForm(prev => ({ ...prev, artist: e.target.value }))}
-                  className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter artist name"
-                />
-              </div>
-              <div className="flex space-x-4">
-                <button
-                  type="button"
-                  onClick={() => setEditModalOpen(false)}
-                  className="flex-1 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors"
-                  disabled={isUpdating}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className={`flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
-                  disabled={isUpdating}
-                >
-                  {isUpdating ? 'Updating...' : 'Update'}
-                </button>
-              </div>
-            </form>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 rounded-xl w-full max-w-sm sm:max-w-md lg:max-w-lg animate-fade-in">
+            <div className="p-4 sm:p-6">
+              <h2 className="text-lg sm:text-xl font-bold text-white mb-4 sm:mb-6">Edit Song</h2>
+              <form onSubmit={handleUpdateSong}>
+                <div className="mb-4">
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Song Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+                    className="w-full px-3 py-2 sm:py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    placeholder="Enter song name"
+                  />
+                </div>
+                <div className="mb-6">
+                  <label className="block text-gray-300 text-sm font-medium mb-2">
+                    Artist
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.artist}
+                    onChange={(e) => setEditForm(prev => ({ ...prev, artist: e.target.value }))}
+                    className="w-full px-3 py-2 sm:py-3 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm sm:text-base"
+                    placeholder="Enter artist name"
+                  />
+                </div>
+                <div className="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                  <button
+                    type="button"
+                    onClick={() => setEditModalOpen(false)}
+                    className="flex-1 px-4 py-2 sm:py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-500 transition-colors text-sm sm:text-base font-medium"
+                    disabled={isUpdating}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className={`flex-1 px-4 py-2 sm:py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors text-sm sm:text-base font-medium ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? 'Updating...' : 'Update'}
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}
@@ -393,6 +388,17 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
         onClose={() => setAddToPlaylistModalOpen(false)}
         song={song}
       />
+
+      <style jsx>{`
+        @keyframes fade-in {
+          from { opacity: 0; transform: scale(0.95) translateY(10px); }
+          to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        
+        .animate-fade-in { 
+          animation: fade-in 0.2s ease-out;
+        }
+      `}</style>
     </>
   );
 }

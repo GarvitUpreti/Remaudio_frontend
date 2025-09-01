@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { setUser } from '../store/userSlice';
-import { addPlaylist, removePlaylist, updatePlaylist } from '../store/playlistSlice'; // Add updatePlaylist import
-import PlaylistModal from '../components/PlaylistModal'; // Import the modal component
+import { addPlaylist, removePlaylist, updatePlaylist } from '../store/playlistSlice';
+import PlaylistModal from '../components/PlaylistModal';
 
 const Playlists = () => {
   const [loading, setLoading] = useState(true);
@@ -38,7 +38,7 @@ const Playlists = () => {
 
     try {
       const response = await axios.post(
-        "${API_URL}/playlists",
+        `${API_URL}/playlists`,
         {
           name: newPlaylistName,
         },
@@ -53,10 +53,7 @@ const Playlists = () => {
 
       if (response.status === 201 || response.status === 200) {
         const newPlaylist = response.data;
-
-        // Update user in Redux with the new playlist ID
         await updateUserInRedux("patch", newPlaylist.id);
-
         setNewPlaylistName("");
         setShowCreateForm(false);
       }
@@ -94,7 +91,6 @@ const Playlists = () => {
           { headers }
         );
       }
-      console.log(response.data);
 
       if (response.status === 200) {
         dispatch(setUser(response.data));
@@ -136,7 +132,6 @@ const Playlists = () => {
     }
   };
 
-  // New function to handle opening playlist modal
   const openPlaylist = (playlist) => {
     setSelectedPlaylist(playlist);
     setIsModalOpen(true);
@@ -144,8 +139,6 @@ const Playlists = () => {
 
   const handleUpdatePlaylist = async (playlistId, updatedData) => {
     try {
-      console.log('Updating playlist:', playlistId, updatedData);
-
       const response = await axios.patch(
         `${API_URL}/playlists/${playlistId}`,
         updatedData,
@@ -158,49 +151,42 @@ const Playlists = () => {
       );
 
       if (response.status === 200) {
-        // Update the playlist in Redux store
         dispatch(updatePlaylist({
           playlistId: playlistId,
           updatedPlaylist: response.data
         }));
-
-        // Also update the selected playlist in the modal
         setSelectedPlaylist(response.data);
-
-        console.log('Playlist updated successfully:', response.data);
       }
     } catch (error) {
       console.error('Error updating playlist:', error.response?.data || error.message);
-      throw error; // Re-throw so the modal can handle the error
+      throw error;
     }
   };
 
-
-
   if (loading) {
     return (
-      <div className="p-6 flex justify-center items-center">
-        <div className="text-white">Loading playlists...</div>
+      <div className="p-4 sm:p-6 flex justify-center items-center min-h-screen">
+        <div className="text-white text-lg">Loading playlists...</div>
       </div>
     );
   }
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-white">Your Playlists</h1>
+    <div className="px-4 py-6 sm:p-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white">Your Playlists</h1>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+          className="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 sm:px-4 sm:py-2 rounded-lg transition-colors font-medium"
         >
           Create Playlist
         </button>
       </div>
 
-      {/* Create Playlist Form */}
+      {/* Create Playlist Form Modal */}
       {showCreateForm && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-800 p-6 rounded-lg w-96">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md mx-4">
             <h2 className="text-xl font-bold text-white mb-4">Create New Playlist</h2>
             <form onSubmit={createPlaylist}>
               <input
@@ -208,13 +194,13 @@ const Playlists = () => {
                 value={newPlaylistName}
                 onChange={(e) => setNewPlaylistName(e.target.value)}
                 placeholder="Playlist name"
-                className="w-full bg-gray-700 text-white p-3 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full bg-gray-700 text-white p-3 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
                 autoFocus
               />
-              <div className="flex space-x-4">
+              <div className="flex flex-col sm:flex-row gap-3 sm:space-x-4 sm:gap-0">
                 <button
                   type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 sm:py-2 rounded-lg transition-colors font-medium"
                 >
                   Create
                 </button>
@@ -224,7 +210,7 @@ const Playlists = () => {
                     setShowCreateForm(false);
                     setNewPlaylistName('');
                   }}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-3 sm:py-2 rounded-lg transition-colors font-medium"
                 >
                   Cancel
                 </button>
@@ -236,22 +222,22 @@ const Playlists = () => {
 
       {/* Playlists Grid */}
       {playlists?.length === 0 ? (
-        <div className="text-center text-gray-400 mt-12">
-          <div className="text-6xl mb-4">🎵</div>
-          <p className="text-xl mb-4">No playlists yet</p>
-          <p>Create your first playlist to organize your music!</p>
+        <div className="text-center text-gray-400 mt-12 px-4">
+          <div className="text-4xl sm:text-6xl mb-4">🎵</div>
+          <p className="text-lg sm:text-xl mb-4">No playlists yet</p>
+          <p className="text-sm sm:text-base">Create your first playlist to organize your music!</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {playlists.map((playlist) => (
-            <div key={playlist.id} className="bg-gray-900 rounded-lg p-6 hover:bg-gray-800 transition-colors">
+            <div key={playlist.id} className="bg-gray-900 rounded-lg p-4 sm:p-6 hover:bg-gray-800 transition-colors">
               <div className="flex justify-between items-start mb-4">
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white text-2xl">
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center text-white text-xl sm:text-2xl">
                   🎵
                 </div>
                 <button
                   onClick={() => deletePlaylist(playlist.id)}
-                  className="text-gray-400 hover:text-red-400 transition-colors"
+                  className="text-gray-400 hover:text-red-400 transition-colors p-2 -m-2"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -259,14 +245,14 @@ const Playlists = () => {
                 </button>
               </div>
 
-              <h3 className="text-white font-semibold text-lg mb-2">{playlist.name}</h3>
+              <h3 className="text-white font-semibold text-base sm:text-lg mb-2 truncate">{playlist.name}</h3>
               <p className="text-gray-400 text-sm mb-4">
                 {playlist.songs?.length || 0} songs
               </p>
 
               <button
                 onClick={() => openPlaylist(playlist)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors"
+                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2.5 sm:py-2 rounded-lg transition-colors font-medium"
               >
                 Open Playlist
               </button>

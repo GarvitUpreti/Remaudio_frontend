@@ -20,10 +20,10 @@ const UserProfile = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-900 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-400 text-lg">Loading profile...</p>
+          <div className="w-12 h-12 sm:w-16 sm:h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400 text-base sm:text-lg">Loading profile...</p>
         </div>
       </div>
     );
@@ -47,7 +47,6 @@ const UserProfile = () => {
 
   const handleEditToggle = () => {
     if (isEditing) {
-      // Reset form when canceling
       setEditForm({
         name: user?.name || '',
         newPassword: '',
@@ -65,12 +64,10 @@ const UserProfile = () => {
     try {
       const updateData = {};
       
-      // Check if name is changed
       if (editForm.name.trim() && editForm.name.trim() !== user.name) {
         updateData.name = editForm.name.trim();
       }
 
-      // Check if password is being updated
       if (showPasswordFields && editForm.newPassword) {
         if (editForm.newPassword !== editForm.confirmPassword) {
           alert('Passwords do not match!');
@@ -85,7 +82,6 @@ const UserProfile = () => {
         updateData.password = editForm.newPassword;
       }
 
-      // If no changes, just close edit mode
       if (Object.keys(updateData).length === 0) {
         setIsEditing(false);
         setIsUpdating(false);
@@ -104,17 +100,16 @@ const UserProfile = () => {
         }
       );
 
-      // Update Redux store with updated user data
       dispatch(updateUser(response.data));
 
-      // Show success notification
+      // Success notification
       const successDiv = document.createElement('div');
       successDiv.innerHTML = `
-        <div class="fixed top-4 right-4 bg-green-600 text-white px-6 py-3 rounded-lg shadow-lg z-[60] flex items-center space-x-2">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <div class="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto bg-green-600 text-white px-4 sm:px-6 py-3 rounded-lg shadow-lg z-[60] flex items-center space-x-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
           </svg>
-          <span>Profile updated successfully!</span>
+          <span class="text-sm sm:text-base">Profile updated successfully!</span>
         </div>
       `;
       document.body.appendChild(successDiv);
@@ -135,11 +130,11 @@ const UserProfile = () => {
       
       const errorDiv = document.createElement('div');
       errorDiv.innerHTML = `
-        <div class="fixed top-4 right-4 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-[60] flex items-center space-x-2">
-          <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+        <div class="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto bg-red-600 text-white px-4 sm:px-6 py-3 rounded-lg shadow-lg z-[60] flex items-center space-x-2">
+          <svg class="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"></path>
           </svg>
-          <span>Failed to update profile. Please try again.</span>
+          <span class="text-sm sm:text-base">Failed to update profile. Please try again.</span>
         </div>
       `;
       document.body.appendChild(errorDiv);
@@ -152,68 +147,68 @@ const UserProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
+    <div className="min-h-screen bg-gray-900 px-4 py-6 sm:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">User Profile</h1>
-          <p className="text-gray-400">Manage your account settings and change password by clicking on Edit profile</p>
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">User Profile</h1>
+          <p className="text-sm sm:text-base text-gray-400">Manage your account settings and change password by clicking on Edit profile</p>
         </div>
 
         {/* Main Profile Card */}
-        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
+        <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl sm:rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
           {/* Cover Section */}
-          <div className="h-20 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 relative">
+          <div className="h-16 sm:h-20 bg-gradient-to-r from-blue-600 via-blue-700 to-blue-800 relative">
             <div className="absolute inset-0 bg-black bg-opacity-20"></div>
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-3 right-3 sm:top-4 sm:right-4">
               {!isEditing ? (
                 <button
                   onClick={handleEditToggle}
-                  className="px-4 py-2 bg-white bg-opacity-20 backdrop-blur-sm text-white rounded-lg hover:bg-opacity-30 transition-all duration-200 flex items-center space-x-2"
+                  className="px-3 py-2 sm:px-4 sm:py-2 bg-white bg-opacity-20 backdrop-blur-sm text-white rounded-lg hover:bg-opacity-30 transition-all duration-200 flex items-center space-x-1 sm:space-x-2 text-sm sm:text-base"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                   </svg>
-                  <span>Edit Profile</span>
+                  <span className="hidden sm:inline">Edit Profile</span>
+                  <span className="sm:hidden">Edit</span>
                 </button>
               ) : (
-                <div className="flex space-x-2">
-                  <button
-                    onClick={handleEditToggle}
-                    disabled={isUpdating}
-                    className="px-3 py-2 bg-gray-600 bg-opacity-80 backdrop-blur-sm text-white rounded-lg hover:bg-gray-500 transition-all duration-200"
-                  >
-                    Cancel
-                  </button>
-                </div>
+                <button
+                  onClick={handleEditToggle}
+                  disabled={isUpdating}
+                  className="px-3 py-2 bg-gray-600 bg-opacity-80 backdrop-blur-sm text-white rounded-lg hover:bg-gray-500 transition-all duration-200 text-sm"
+                >
+                  Cancel
+                </button>
               )}
             </div>
           </div>
 
           {/* Profile Content */}
-          <div className="p-8">
-            <div className="flex flex-col lg:flex-row gap-8">
+          <div className="p-4 sm:p-6 lg:p-8">
+            <div className="flex flex-col lg:flex-row gap-6 lg:gap-8">
               {/* Left Column - Profile Info */}
               <div className="lg:w-1/2">
                 {/* Profile Picture and Basic Info */}
-                <div className="flex items-start space-x-6 mb-8">
-                  <div className="relative">
+                <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4 lg:space-x-6 mb-6 sm:mb-8">
+                  <div className="relative flex-shrink-0">
                     <img
                       src={user.profilePic || defaultProfilePic}
                       alt="Profile"
-                      className="w-24 h-24 rounded-2xl object-cover border-4 border-gray-600 shadow-lg"
+                      className="w-20 h-20 sm:w-24 sm:h-24 rounded-xl sm:rounded-2xl object-cover border-4 border-gray-600 shadow-lg"
                       onError={(e) => {
                         e.target.src = defaultProfilePic;
                       }}
                     />
-                    <div className="absolute -bottom-2 -right-2 w-6 h-6 bg-green-500 border-2 border-gray-800 rounded-full"></div>
+                    <div className="absolute -bottom-1 -right-1 sm:-bottom-2 sm:-right-2 w-5 h-5 sm:w-6 sm:h-6 bg-green-500 border-2 border-gray-800 rounded-full"></div>
                   </div>
-                  <div className="flex-1">
+                  
+                  <div className="flex-1 text-center sm:text-left w-full">
                     {!isEditing ? (
                       <>
-                        <h2 className="text-2xl font-bold text-white mb-1">{user.name}</h2>
-                        <p className="text-gray-400 mb-2">{user.email}</p>
-                        <div className="flex items-center space-x-2">
+                        <h2 className="text-xl sm:text-2xl font-bold text-white mb-1">{user.name}</h2>
+                        <p className="text-gray-400 mb-2 break-all sm:break-normal">{user.email}</p>
+                        <div className="flex flex-wrap justify-center sm:justify-start items-center gap-2">
                           {user.isEmailVerified && (
                             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
                               <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
@@ -243,58 +238,54 @@ const UserProfile = () => {
                             type="text"
                             value={editForm.name}
                             onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-                            className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-600"
+                            className="w-full px-3 py-3 sm:py-2 text-base bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-600"
                             placeholder="Enter your name"
                             required
                           />
                         </div>
                         
                         <div className="space-y-3">
-                          <div className="flex items-center justify-between">
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
                             <label className="text-sm font-medium text-gray-300">Change Password</label>
                             <button
                               type="button"
                               onClick={() => setShowPasswordFields(!showPasswordFields)}
-                              className="text-blue-400 hover:text-blue-300 text-sm"
+                              className="text-blue-400 hover:text-blue-300 text-sm text-left sm:text-right"
                             >
                               {showPasswordFields ? 'Cancel' : 'Change Password'}
                             </button>
                           </div>
                           
                           {showPasswordFields && (
-                            <>
-                              <div>
-                                <input
-                                  type="password"
-                                  value={editForm.newPassword}
-                                  onChange={(e) => setEditForm(prev => ({ ...prev, newPassword: e.target.value }))}
-                                  className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-600"
-                                  placeholder="Enter new password"
-                                  minLength={6}
-                                />
-                              </div>
-                              <div>
-                                <input
-                                  type="password"
-                                  value={editForm.confirmPassword}
-                                  onChange={(e) => setEditForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
-                                  className="w-full px-3 py-2 bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-600"
-                                  placeholder="Confirm new password"
-                                  minLength={6}
-                                />
-                              </div>
+                            <div className="space-y-3">
+                              <input
+                                type="password"
+                                value={editForm.newPassword}
+                                onChange={(e) => setEditForm(prev => ({ ...prev, newPassword: e.target.value }))}
+                                className="w-full px-3 py-3 sm:py-2 text-base bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-600"
+                                placeholder="Enter new password"
+                                minLength={6}
+                              />
+                              <input
+                                type="password"
+                                value={editForm.confirmPassword}
+                                onChange={(e) => setEditForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                                className="w-full px-3 py-3 sm:py-2 text-base bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 border border-gray-600"
+                                placeholder="Confirm new password"
+                                minLength={6}
+                              />
                               {editForm.newPassword && editForm.confirmPassword && editForm.newPassword !== editForm.confirmPassword && (
                                 <p className="text-red-400 text-sm">Passwords do not match</p>
                               )}
-                            </>
+                            </div>
                           )}
                         </div>
 
-                        <div className="flex space-x-3 pt-4">
+                        <div className="pt-4">
                           <button
                             type="submit"
                             disabled={isUpdating}
-                            className={`px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center space-x-2 ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`w-full sm:w-auto px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center justify-center space-x-2 font-medium ${isUpdating ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             {isUpdating ? (
                               <>
@@ -319,18 +310,18 @@ const UserProfile = () => {
                 {/* Account Details */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white mb-4">Account Details</h3>
-                  <div className="grid grid-cols-1 gap-4">
-                    <div className="bg-gray-700 p-4 rounded-xl">
-                      <p className="text-gray-400 text-sm">User ID</p>
-                      <p className="text-white font-medium">#{user.id}</p>
+                  <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                    <div className="bg-gray-700 p-3 sm:p-4 rounded-lg sm:rounded-xl">
+                      <p className="text-gray-400 text-xs sm:text-sm">User ID</p>
+                      <p className="text-white font-medium text-sm sm:text-base">#{user.id}</p>
                     </div>
-                    <div className="bg-gray-700 p-4 rounded-xl">
-                      <p className="text-gray-400 text-sm">Member Since</p>
-                      <p className="text-white font-medium">{formatDate(user.createdAt)}</p>
+                    <div className="bg-gray-700 p-3 sm:p-4 rounded-lg sm:rounded-xl">
+                      <p className="text-gray-400 text-xs sm:text-sm">Member Since</p>
+                      <p className="text-white font-medium text-sm sm:text-base">{formatDate(user.createdAt)}</p>
                     </div>
-                    <div className="bg-gray-700 p-4 rounded-xl">
-                      <p className="text-gray-400 text-sm">Days on Platform</p>
-                      <p className="text-white font-medium">{calculateDaysOnPlatform()} days</p>
+                    <div className="bg-gray-700 p-3 sm:p-4 rounded-lg sm:rounded-xl">
+                      <p className="text-gray-400 text-xs sm:text-sm">Days on Platform</p>
+                      <p className="text-white font-medium text-sm sm:text-base">{calculateDaysOnPlatform()} days</p>
                     </div>
                   </div>
                 </div>
@@ -338,82 +329,82 @@ const UserProfile = () => {
 
               {/* Right Column - Stats */}
               <div className="lg:w-1/2">
-                <h3 className="text-lg font-semibold text-white mb-6">Your Music Library</h3>
+                <h3 className="text-lg font-semibold text-white mb-4 sm:mb-6">Your Music Library</h3>
                 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="grid grid-cols-2 sm:grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   {/* Songs Stats */}
-                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-6 rounded-2xl text-white">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-white bg-opacity-20 rounded-xl">
-                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-gradient-to-br from-blue-600 to-blue-700 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-white">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <div className="p-2 sm:p-3 bg-white bg-opacity-20 rounded-lg sm:rounded-xl">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 3v10.55c-.59-.34-1.27-.55-2-.55-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4V7h4V3h-6z" />
                         </svg>
                       </div>
                       <div className="text-right">
-                        <div className="text-3xl font-bold">{user.songs?.length || 0}</div>
-                        <div className="text-blue-100 text-sm">Songs</div>
+                        <div className="text-2xl sm:text-3xl font-bold">{user.songs?.length || 0}</div>
+                        <div className="text-blue-100 text-xs sm:text-sm">Songs</div>
                       </div>
-                    </div>
-                    <div className="text-blue-100 text-sm">
+                                          </div>
+                    <div className="text-blue-100 text-xs sm:text-sm">
                       Total tracks in your collection
                     </div>
                   </div>
 
                   {/* Playlists Stats */}
-                  <div className="bg-gradient-to-br from-purple-600 to-purple-700 p-6 rounded-2xl text-white">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-white bg-opacity-20 rounded-xl">
-                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-gradient-to-br from-purple-600 to-purple-700 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-white">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <div className="p-2 sm:p-3 bg-white bg-opacity-20 rounded-lg sm:rounded-xl">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M15 6H3v2h12V6zm0 4H3v2h12v-2zM3 16h8v-2H3v2zM17 6v8.18c-.31-.11-.65-.18-1-.18-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3V8h3V6h-5z"/>
                         </svg>
                       </div>
                       <div className="text-right">
-                        <div className="text-3xl font-bold">{user.playlists?.length || 0}</div>
-                        <div className="text-purple-100 text-sm">Playlists</div>
+                        <div className="text-2xl sm:text-3xl font-bold">{user.playlists?.length || 0}</div>
+                        <div className="text-purple-100 text-xs sm:text-sm">Playlists</div>
                       </div>
                     </div>
-                    <div className="text-purple-100 text-sm">
+                    <div className="text-purple-100 text-xs sm:text-sm">
                       Curated collections you've created
                     </div>
                   </div>
 
                   {/* Total Duration Stats */}
-                  <div className="bg-gradient-to-br from-green-600 to-green-700 p-6 rounded-2xl text-white sm:col-span-2">
-                    <div className="flex items-center justify-between mb-4">
-                      <div className="p-3 bg-white bg-opacity-20 rounded-xl">
-                        <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                  <div className="bg-gradient-to-br from-green-600 to-green-700 p-4 sm:p-6 rounded-xl sm:rounded-2xl text-white col-span-2 sm:col-span-1 lg:col-span-2">
+                    <div className="flex items-center justify-between mb-3 sm:mb-4">
+                      <div className="p-2 sm:p-3 bg-white bg-opacity-20 rounded-lg sm:rounded-xl">
+                        <svg className="w-6 h-6 sm:w-8 sm:h-8" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                         </svg>
                       </div>
                       <div className="text-right">
-                        <div className="text-3xl font-bold">
+                        <div className="text-2xl sm:text-3xl font-bold">
                           {user.songs?.reduce((total, song) => {
                             const duration = song.duration || "0:00";
                             const [minutes, seconds] = duration.split(':').map(Number);
                             return total + (minutes || 0) + ((seconds || 0) / 60);
                           }, 0).toFixed(0)} min
                         </div>
-                        <div className="text-green-100 text-sm">Total Music</div>
+                        <div className="text-green-100 text-xs sm:text-sm">Total Music</div>
                       </div>
                     </div>
-                    <div className="text-green-100 text-sm">
+                    <div className="text-green-100 text-xs sm:text-sm">
                       Total duration of your music library
                     </div>
                   </div>
                 </div>
 
                 {/* Activity Timeline */}
-                <div className="mt-8">
+                <div className="mt-6 sm:mt-8">
                   <h3 className="text-lg font-semibold text-white mb-4">Recent Activity</h3>
-                  <div className="space-y-3">
+                  <div className="space-y-2 sm:space-y-3 max-h-64 sm:max-h-80 overflow-y-auto">
                     {user.songs?.slice(-3).reverse().map((song) => (
                       <div key={song.id} className="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg">
-                        <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                        <div className="flex-1">
-                          <p className="text-white text-sm">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm sm:text-base truncate">
                             Added "{song.name.replace(/\.[^/.]+$/, "")}"
                           </p>
-                          <p className="text-gray-400 text-xs">
+                          <p className="text-gray-400 text-xs sm:text-sm">
                             {formatDate(song.createdAt)}
                           </p>
                         </div>
@@ -422,12 +413,12 @@ const UserProfile = () => {
                     
                     {user.playlists?.slice(-2).reverse().map((playlist) => (
                       <div key={`playlist-${playlist.id}`} className="flex items-center space-x-3 p-3 bg-gray-700 rounded-lg">
-                        <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                        <div className="flex-1">
-                          <p className="text-white text-sm">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-white text-sm sm:text-base truncate">
                             Created playlist "{playlist.name}"
                           </p>
-                          <p className="text-gray-400 text-xs">
+                          <p className="text-gray-400 text-xs sm:text-sm">
                             {formatDate(playlist.createdAt)}
                           </p>
                         </div>
@@ -435,12 +426,12 @@ const UserProfile = () => {
                     ))}
 
                     {(!user.songs || user.songs.length === 0) && (!user.playlists || user.playlists.length === 0) && (
-                      <div className="text-center py-8 text-gray-400">
-                        <svg className="w-12 h-12 mx-auto mb-4 opacity-50" fill="currentColor" viewBox="0 0 24 24">
+                      <div className="text-center py-6 sm:py-8 text-gray-400">
+                        <svg className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
                         </svg>
-                        <p>No recent activity</p>
-                        <p className="text-sm mt-1">Start uploading songs to see your activity here</p>
+                        <p className="text-sm sm:text-base">No recent activity</p>
+                        <p className="text-xs sm:text-sm mt-1">Start uploading songs to see your activity here</p>
                       </div>
                     )}
                   </div>
@@ -449,8 +440,10 @@ const UserProfile = () => {
             </div>
           </div>
         </div>
-
-        </div>
+      </div>
+      
+      {/* Bottom spacer for mobile */}
+      <div className="h-8 sm:h-0"></div>
     </div>
   );
 };

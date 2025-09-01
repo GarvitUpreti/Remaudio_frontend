@@ -108,31 +108,62 @@ const App = () => {
 
 const MainLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { currentSong } = useSelector(state => state.music);
+
+  // Close sidebar when clicking outside on mobile
+  const closeSidebarOnMobile = () => {
+    if (window.innerWidth < 768) { // md breakpoint
+      setIsSidebarOpen(false);
+    }
+  };
 
   return (
     <>
-      <Header
+      {/* Header - Fixed at top */}
+      <Header 
         isSidebarOpen={isSidebarOpen}
         setIsSidebarOpen={setIsSidebarOpen}
       />
 
-      <div className="flex flex-1 overflow-hidden">
-        <Sidebar isOpen={isSidebarOpen} />
+      {/* Mobile overlay for sidebar */}
+      {isSidebarOpen && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          onClick={() => setIsSidebarOpen(false)}
+        ></div>
+      )}
 
-        <main className="flex-1 bg-gray-800 overflow-y-auto">
-          <Routes>
-            <Route path="/" element={<Home />} />
-            <Route path="/songs" element={<Songs />} />
-            <Route path="/playlists" element={<Playlists />} />
-            <Route path="/upload" element={<Upload />} />
-            <Route path="/developer" element={<DeveloperNote />} />
-            <Route path="/userProfile" element={<UserProfile />} />
-            <Route path="/multiplay" element={<Multiplay />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+      {/* Main content area */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        <Sidebar 
+          isOpen={isSidebarOpen} 
+          onClose={() => setIsSidebarOpen(false)}
+        />
+
+        {/* Main content */}
+        <main 
+          className={`flex-1 bg-gray-800 overflow-y-auto transition-all duration-300 ${
+            currentSong ? 'pb-20 sm:pb-24 md:pb-20' : 'pb-4'
+          }`}
+          onClick={closeSidebarOnMobile}
+        >
+          <div className="min-h-full">
+            <Routes>
+              <Route path="/" element={<Home />} />
+              <Route path="/songs" element={<Songs />} />
+              <Route path="/playlists" element={<Playlists />} />
+              <Route path="/upload" element={<Upload />} />
+              <Route path="/developer" element={<DeveloperNote />} />
+              <Route path="/userProfile" element={<UserProfile />} />
+              <Route path="/multiplay" element={<Multiplay />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </div>
         </main>
       </div>
 
+      {/* Music Player - Fixed at bottom */}
       <MusicPlayer />
     </>
   );

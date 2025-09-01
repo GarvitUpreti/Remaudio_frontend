@@ -20,23 +20,23 @@ export const useFollowerMultiplay = () => {
   // Function to measure actual audio processing delay
   const measureAudioDelay = (targetTime) => {
     const measureStart = nowMs();
-    
+
     // Use requestAnimationFrame to measure when audio actually updates
     requestAnimationFrame(() => {
       if (audioRef.current) {
         const actualDelay = nowMs() - measureStart;
-        
+
         // Store delay measurements (keep last 5)
         performanceRef.current.measurements.push(actualDelay);
         if (performanceRef.current.measurements.length > 5) {
           performanceRef.current.measurements.shift();
         }
-        
+
         // Update average processing delay
         const measurements = performanceRef.current.measurements;
-        performanceRef.current.avgProcessingDelay = 
+        performanceRef.current.avgProcessingDelay =
           measurements.reduce((a, b) => a + b, 0) / measurements.length;
-        
+
         console.log(`⏱️ Audio processing delay: ${actualDelay.toFixed(1)}ms | Avg: ${performanceRef.current.avgProcessingDelay.toFixed(1)}ms`);
       }
     });
@@ -49,7 +49,7 @@ export const useFollowerMultiplay = () => {
       if (!data || throttleRef.current) return;
 
       const eventReceiveTime = nowMs(); // Capture immediately
-      
+
       const {
         currentSong,
         currentVolume,
@@ -67,35 +67,35 @@ export const useFollowerMultiplay = () => {
 
       // Estimate total processing delay (React + Audio)
       const processingDelay = performanceRef.current.avgProcessingDelay / 1000; // Convert to seconds
-      
+
       // Device-specific compensation
       const isMobile = /Mobi|Android/i.test(navigator.userAgent);
       const deviceCompensation = isMobile ? 0.05 : 0.02; // Extra mobile delay
-      
+
       // Calculate predictive playback time
       let predictivePlaybackTime;
-      
+
       switch (action) {
         case 'play':
         case 'resume':
           // Predict where host will be when our audio actually starts
-          predictivePlaybackTime = hostPlaybackTime + networkDelay + processingDelay + deviceCompensation;
+          predictivePlaybackTime = hostPlaybackTime + (networkDelay * 0.3) + (baseDeviceDelay * 0.5);
           break;
-          
+
         case 'newSong':
           // For new songs, add minimal compensation
-          predictivePlaybackTime = hostPlaybackTime + + networkDelay + processingDelay + deviceCompensation;
-          break;
-          
+          shouldApplyFullCompensation = true;
+          predictivePlaybackTime = hostPlaybackTime + networkDelay + (processingDelay * 0.7) + baseDeviceDelay; break;
+
         case 'pause':
         case 'seek':
-          predictivePlaybackTime = hostPlaybackTime + + networkDelay + processingDelay + deviceCompensation;
+          predictivePlaybackTime = hostPlaybackTime + networkDelay + processingDelay + deviceCompensation;
           break;
         case 'volume':
           // Use exact time for these actions
           predictivePlaybackTime = hostPlaybackTime;
           break;
-          
+
         case 'heartbeat':
         default:
           if (isPlaying) {
@@ -120,7 +120,7 @@ export const useFollowerMultiplay = () => {
         compensation: ((predictivePlaybackTime - hostPlaybackTime) * 1000).toFixed(1) + 'ms',
         device: isMobile ? '📱' : '💻'
       };
-      
+
       console.log('🎯 Predictive Sync:', syncDebug);
 
       // Start delay measurement

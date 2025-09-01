@@ -87,20 +87,4 @@ export const useHostMultiplay = () => {
     multiplay.role,
   ]);
 
-  // More frequent heartbeat for better sync
-  useEffect(() => {
-    if (!multiplay.isActive || multiplay.role !== 'host') {
-      if (heartbeatRef.current) clearInterval(heartbeatRef.current);
-      return;
-    }
-
-    // Send heartbeat every 2 seconds instead of 3
-    // heartbeatRef.current = setInterval(() => {
-    //   sendMultiplayEvent('heartbeat');
-    // }, 2000);
-
-    return () => {
-      if (heartbeatRef.current) clearInterval(heartbeatRef.current);
-    };
-  }, [multiplay.isActive, multiplay.role]);
 };
