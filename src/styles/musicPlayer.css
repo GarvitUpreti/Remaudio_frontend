@@ -1,0 +1,220 @@
+/* MusicPlayer.css */
+@keyframes marquee {
+  0% { 
+    transform: translateX(0%); 
+  }
+  100% { 
+    transform: translateX(-100%); 
+  }
+}
+
+.animate-marquee {
+  animation: marquee linear infinite;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+/* Base slider styles */
+.seek-slider, .volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 3px;
+  outline: none;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  background: #374151;
+  will-change: background-image;
+  transform: translateZ(0);
+}
+
+.seek-slider {
+  height: 6px;
+  background-image: linear-gradient(to right, #3B82F6 0%, #3B82F6 var(--seek-progress, 0%), transparent var(--seek-progress, 0%));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.volume-slider {
+  height: 5px;
+  background-image: linear-gradient(to right, #3B82F6 0%, #3B82F6 var(--volume-progress, 0%), transparent var(--volume-progress, 0%));
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+}
+
+.seek-slider:hover, .volume-slider:hover {
+  opacity: 1;
+}
+
+/* Default slider thumbs */
+.seek-slider::-webkit-slider-thumb, .volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 50%;
+  background: #3B82F6;
+  cursor: pointer;
+  border: 2px solid #1F2937;
+  transition: all 0.2s;
+  position: relative;
+  z-index: 10;
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+/* Adjust thumb position when marquee is active */
+.animate-marquee ~ * .seek-slider::-webkit-slider-thumb,
+*:has(.animate-marquee) .seek-slider::-webkit-slider-thumb {
+  transform: translateZ(0) translateX(-3px);
+}
+
+.animate-marquee ~ * .volume-slider::-webkit-slider-thumb,
+*:has(.animate-marquee) .volume-slider::-webkit-slider-thumb {
+  transform: translateZ(0) translateX(-2px);
+}
+
+/* Alternative approach - target parent container when marquee is active */
+.fixed.bottom-0:has(.animate-marquee) .seek-slider::-webkit-slider-thumb {
+  transform: translateZ(0) translateX(-3px);
+}
+
+.fixed.bottom-0:has(.animate-marquee) .volume-slider::-webkit-slider-thumb {
+  transform: translateZ(0) translateX(-2px);
+}
+
+.seek-slider::-webkit-slider-thumb {
+  width: 16px;
+  height: 16px;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  width: 14px;
+  height: 14px;
+  border: 1px solid #1F2937;
+}
+
+.seek-slider::-webkit-slider-thumb:hover, 
+.volume-slider::-webkit-slider-thumb:hover {
+  background: #2563EB;
+  transform: translateZ(0) scale(1.1);
+}
+
+/* When marquee is active, maintain offset even on hover */
+.fixed.bottom-0:has(.animate-marquee) .seek-slider::-webkit-slider-thumb:hover {
+  background: #2563EB;
+  transform: translateZ(0) translateX(-3px) scale(1.1);
+}
+
+.fixed.bottom-0:has(.animate-marquee) .volume-slider::-webkit-slider-thumb:hover {
+  background: #2563EB;
+  transform: translateZ(0) translateX(-2px) scale(1.1);
+}
+
+/* Firefox slider thumbs */
+.seek-slider::-moz-range-thumb, .volume-slider::-moz-range-thumb {
+  border-radius: 50%;
+  background: #3B82F6;
+  cursor: pointer;
+  border: 2px solid #1F2937;
+  transition: all 0.2s;
+  position: relative;
+  z-index: 10;
+  -moz-appearance: none;
+}
+
+/* Firefox thumb adjustments when marquee is active */
+.fixed.bottom-0:has(.animate-marquee) .seek-slider::-moz-range-thumb {
+  transform: translateX(-3px);
+}
+
+.fixed.bottom-0:has(.animate-marquee) .volume-slider::-moz-range-thumb {
+  transform: translateX(-2px);
+}
+
+.seek-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 1px solid #1F2937;
+}
+
+.seek-slider::-moz-range-thumb:hover, 
+.volume-slider::-moz-range-thumb:hover {
+  background: #2563EB;
+  transform: scale(1.1);
+}
+
+/* Firefox hover with marquee offset */
+.fixed.bottom-0:has(.animate-marquee) .seek-slider::-moz-range-thumb:hover {
+  background: #2563EB;
+  transform: translateX(-3px) scale(1.1);
+}
+
+.fixed.bottom-0:has(.animate-marquee) .volume-slider::-moz-range-thumb:hover {
+  background: #2563EB;
+  transform: translateX(-2px) scale(1.1);
+}
+
+/* Firefox slider tracks */
+.seek-slider::-moz-range-track {
+  height: 6px;
+  border-radius: 3px;
+  background: #374151;
+  border: none;
+}
+
+.volume-slider::-moz-range-track {
+  height: 5px;
+  border-radius: 2.5px;
+  background: #374151;
+  border: none;
+}
+
+/* Firefox progress */
+.seek-slider::-moz-range-progress {
+  height: 6px;
+  border-radius: 3px;
+  background: #3B82F6;
+  border: none;
+}
+
+.volume-slider::-moz-range-progress {
+  height: 5px;
+  border-radius: 2.5px;
+  background: #3B82F6;
+  border: none;
+}
+
+/* Remove focus outline */
+.seek-slider:focus, .volume-slider:focus {
+  outline: none;
+}
+
+.seek-slider:focus::-webkit-slider-thumb, .volume-slider:focus::-webkit-slider-thumb {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+.seek-slider:focus::-moz-range-thumb, .volume-slider:focus::-moz-range-thumb {
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Container optimizations */
+.fixed.bottom-0 {
+  contain: layout style paint;
+}
+
+/* Marquee optimizations */
+.animate-marquee {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}

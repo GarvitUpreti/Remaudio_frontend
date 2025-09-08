@@ -62,19 +62,14 @@ const Songs = () => {
       ) : (
         <div className="space-y-2 sm:space-y-3">
           {reduxSongs.map((song, index) => (
-            <div 
+            // REMOVED the transform wrapper that was creating stacking context issues
+            <Song
               key={song.id}
-              className={`transform transition-all duration-200 ${
-                currentSong?.id === song.id ? 'scale-[1.02]' : 'hover:scale-[1.01]'
-              }`}
-            >
-              <Song
-                song={song}
-                onPlay={handlePlaySong}
-                isCurrentSong={currentSong?.id === song.id}
-                index={index}
-              />
-            </div>
+              song={song}
+              onPlay={handlePlaySong}
+              isCurrentSong={currentSong?.id === song.id}
+              index={index}
+            />
           ))}
         </div>
       )}

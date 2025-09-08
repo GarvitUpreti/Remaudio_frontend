@@ -4,6 +4,7 @@ import { removeSong, setSongs } from "../store/songSlice";
 import { updatePlaylist } from "../store/playlistSlice";
 import { updateUser } from "../store/userSlice";
 import AddToPlaylistModal from "../components/AddToPlaylistModal";
+import MarqueeText from "./MarqueeText"; // Add this import
 
 const Song = ({ song, onPlay, isCurrentSong }) => {
   const { isPlaying } = useSelector((state) => state.music);
@@ -249,17 +250,17 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
             )}
           </div>
 
-          {/* Song Info */}
+          {/* Song Info with Marquee */}
           <div className="min-w-0 flex-1">
-            <h3
-              className={`font-medium transition-colors truncate text-sm sm:text-base ${isCurrentSong ? "text-blue-400" : "text-white"
+            <MarqueeText
+              text={song.name.replace(/\.[^/.]+$/, "")}
+              className={`font-medium transition-colors text-sm sm:text-base ${isCurrentSong ? "text-blue-400" : "text-white"
                 }`}
-            >
-              {song.name.replace(/\.[^/.]+$/, "")}
-            </h3>
-            <p className="text-gray-400 text-xs sm:text-sm truncate">
-              {getDisplayArtist(song.artist)}
-            </p>
+            />
+            <MarqueeText
+              text={getDisplayArtist(song.artist)}
+              className="text-gray-400 text-xs sm:text-sm"
+            />
           </div>
         </div>
 
@@ -288,9 +289,9 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
             )}
           </button>
 
-          {/* More options button */}
+          {/* More options button - CHANGED: Always visible */}
           <button
-            className="text-gray-400 hover:text-white opacity-0 group-hover:opacity-100 transition-all duration-200 p-1"
+            className="text-gray-400 hover:text-white transition-all duration-200 p-1"
             onClick={(e) => {
               e.stopPropagation();
               setMenuOpen(!menuOpen);
@@ -301,9 +302,17 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
             </svg>
           </button>
 
-          {/* Dropdown Menu */}
+          {/* Dropdown Menu - Use fixed positioning with very high z-index */}
           {menuOpen && (
-            <div className="absolute right-0 top-8 sm:top-10 bg-gray-800 text-white rounded-lg shadow-xl py-2 w-36 sm:w-40 z-20 border border-gray-700 animate-fade-in">
+            <div
+              className="fixed bg-gray-800 text-white rounded-lg shadow-2xl py-2 w-36 sm:w-40 border border-gray-700 animate-fade-in"
+              style={{
+                top: menuRef.current ? menuRef.current.getBoundingClientRect().bottom + 4 : 0,
+                left: menuRef.current ? menuRef.current.getBoundingClientRect().right - 160 : 0,
+                zIndex: 999999,
+                boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.8)'
+              }}
+            >
               <button
                 className={`w-full text-left px-3 sm:px-4 py-2 hover:bg-gray-700 text-sm transition-colors ${isDeleting ? 'opacity-50 cursor-not-allowed' : ''}`}
                 onClick={handleDeleteSong}
@@ -325,6 +334,7 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
               </button>
             </div>
           )}
+
         </div>
       </div>
 

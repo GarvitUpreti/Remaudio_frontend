@@ -13,7 +13,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { path: '/upload', icon: '⬆️', label: 'Upload' },
     { path: '/multiplay', icon: '👥', label: 'Multiplay' },
     { path: '/userProfile', icon: '👤', label: 'Profile' },
-    { path: '/developer', icon: '🛠️', label: 'Developer' },
+    { path: '/developer', icon: '🛠️', label: `Developer's note` },
   ];
 
   const handleNavClick = () => {
@@ -81,9 +81,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         </nav>
 
         {/* Sidebar Footer */}
-        <div className="p-4 sm:p-6 border-t border-gray-600">
+        <div className="p-3 sm:p-3 border-t border-gray-600">
           <div className="text-center text-gray-400 text-xs sm:text-sm">
-            <p>Remaudio v1.0.0</p>
+            <p>Remaudio v2.0.0</p>
             <p className="mt-1">© {new Date().getFullYear()}</p>
           </div>
         </div>

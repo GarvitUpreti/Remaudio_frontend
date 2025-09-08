@@ -4,7 +4,7 @@ import { useSocket } from '../contexts/SocketContext';
 import { setMultiplayRoom, leaveMultiplayRoom } from '../store/musicSlice';
 import { useHostMultiplay } from '../hooks/useHostMultiplay';
 import { useFollowerMultiplay } from '../hooks/useFollowerMultiplay';
-import { FiUsers, FiCopy, FiLogOut, FiMusic } from 'react-icons/fi';
+import { FiUsers, FiCopy, FiLogOut, FiMusic, FiSliders } from 'react-icons/fi';
 
 const Multiplay = () => {
   const { socket, isConnected } = useSocket();
@@ -31,12 +31,12 @@ const Multiplay = () => {
 
     const roomId = generateRoomId();
     setIsCreating(true);
-    
+
     socket.emit('join_room', { roomId, role: 'host' });
-    
+
     socket.once('join_status', (response) => {
       setIsCreating(false);
-      
+
       if (response.message === 'joined') {
         dispatch(setMultiplayRoom({ roomId, role: 'host' }));
       } else {
@@ -57,12 +57,12 @@ const Multiplay = () => {
     }
 
     setIsJoining(true);
-    
+
     socket.emit('join_room', { roomId: roomInput.trim().toUpperCase(), role: 'follower' });
-    
+
     socket.once('join_status', (response) => {
       setIsJoining(false);
-      
+
       if (response.message === 'joined') {
         dispatch(setMultiplayRoom({ roomId: roomInput.trim().toUpperCase(), role: 'follower' }));
         setRoomInput('');
@@ -103,10 +103,10 @@ const Multiplay = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 px-4 py-6 sm:p-6 pb-24 sm:pb-6">
+    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 px-4 py-6 sm:p-6 pb-32 sm:pb-16">
       {/* Header with Room ID */}
       {multiplay.isActive && (
-        <div className="fixed top-4 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto z-50">
+        <div className="fixed top-28 left-4 right-4 sm:left-auto sm:right-4 sm:w-auto z-20">
           <div className="bg-white/10 backdrop-blur-md rounded-lg p-3 text-white">
             <div className="flex items-center justify-between sm:justify-start sm:space-x-2">
               <div className="flex items-center space-x-2 min-w-0">
@@ -131,7 +131,7 @@ const Multiplay = () => {
           // Room Creation/Join Interface
           <div className="text-center text-white mb-8 sm:mb-16">
             <div className="mb-8 sm:mb-14">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent px-4">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-4 bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent px-4 leading-[1.3] py-2">
                 Multiplay
               </h1>
               <p className="text-lg sm:text-xl text-gray-300 px-4">
@@ -238,15 +238,27 @@ const Multiplay = () => {
               <div className="mb-6">
                 <h2 className="text-2xl sm:text-3xl font-bold mb-4">Room Active</h2>
                 <div className="flex items-center justify-center space-x-2 text-base sm:text-lg">
-                  <span className={`px-3 py-2 rounded-full text-sm font-medium ${
-                    multiplay.role === 'host' 
-                      ? 'bg-green-500/20 text-green-400 border border-green-500/30' 
-                      : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
-                  }`}>
+                  <span className={`px-3 py-2 rounded-full text-sm font-medium ${multiplay.role === 'host'
+                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
+                    : 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                    }`}>
                     {multiplay.role === 'host' ? '👑 Host' : '👥 Follower'}
                   </span>
                 </div>
               </div>
+
+              {/* Host Sync Message */}
+              {multiplay.role === 'host' && (
+                <div className="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4 mb-6 animate-pulse-gentle">
+                  <div className="flex items-center justify-center space-x-2 mb-2">
+                    <FiSliders className="w-5 h-5 text-orange-400 animate-bounce" />
+                    <p className="text-orange-400 font-medium text-sm sm:text-base">🎛️ Sync Tip</p>
+                  </div>
+                  <p className="text-xs sm:text-sm text-gray-300 leading-relaxed">
+                    If followers are not synced, drag the music playback slider to any position to bring all follower devices in sync
+                  </p>
+                </div>
+              )}
 
               {/* Current Song Info */}
               {currentSong && (
@@ -324,17 +336,24 @@ const Multiplay = () => {
         )}
       </div>
 
-      {/* Bottom spacer for mobile navigation */}
-      <div className="h-8 sm:h-0"></div>
-
-      {/* Custom styles for fade-in animation */}
+      {/* Custom styles for animations */}
       <style jsx>{`
         @keyframes fade-in {
           from { opacity: 0; transform: translateY(-10px); }
           to { opacity: 1; transform: translateY(0); }
         }
+        
+        @keyframes pulse-gentle {
+          0%, 100% { opacity: 1; }
+          50% { opacity: 0.8; }
+        }
+        
         .animate-fade-in {
           animation: fade-in 0.3s ease-out;
+        }
+        
+        .animate-pulse-gentle {
+          animation: pulse-gentle 3s ease-in-out infinite;
         }
       `}</style>
     </div>

@@ -6,6 +6,7 @@ import { useDispatch } from 'react-redux';
 import { setUser } from '../store/userSlice';
 import { setSongs } from "../store/songSlice";           // Add this
 import { setPlaylists } from "../store/playlistSlice";   // Add this
+import { setRefreshToken } from '../store/authSlice'; // ✅ ADD THIS LINE
 
 const Auth3 = () => { // ✅ Remove prop parameter
   const dispatch = useDispatch();
@@ -27,7 +28,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
     try {
       const base64Url = token.split('.')[1];
       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function (c) {
         return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
       }).join(''));
       return JSON.parse(jsonPayload);
@@ -39,53 +40,53 @@ const Auth3 = () => { // ✅ Remove prop parameter
 
   // Helper function to fetch user info
   const fetchUserInfo = async (userEmail, accessToken) => {
-  try {
-    const userRes = await axios.get(
-      `${API_URL}/user/email/${userEmail}`,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      }
-    );
-    
-    localStorage.setItem("userEmail", userEmail);
-    localStorage.setItem("userId", userRes.data.id); // Store user ID for future use
-    console.log("User id:", userRes.data.id);
-    
-    // Load user's songs and playlists
-    console.log("🚀 Loading user's songs and playlists...");
-    const [songsResponse, playlistsResponse] = await Promise.all([
-      axios.get(`${API_URL}/songs/user/${userRes.data.id}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      }),
-      axios.get(`${API_URL}/playlists/user/${userRes.data.id}`, {
-        headers: { Authorization: `Bearer ${accessToken}` }
-      })
-    ]);
+    try {
+      const userRes = await axios.get(
+        `${API_URL}/user/email/${userEmail}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
-    console.log("📦 Data loaded:", {
-      songs: songsResponse.data.length,
-      playlists: playlistsResponse.data.length,
-      user: userRes.data.email
-    });
+      localStorage.setItem("userEmail", userEmail);
+      localStorage.setItem("userId", userRes.data.id); // Store user ID for future use
+      console.log("User id:", userRes.data.id);
 
-    // ✅ Dispatch all data to Redux
-    dispatch(setUser(userRes.data));
-    dispatch(setSongs(songsResponse.data));
-    dispatch(setPlaylists(playlistsResponse.data));
-    
-    console.log("✅ All data dispatched to Redux:", {
-      user: userRes.data.email,
-      songsCount: songsResponse.data.length,
-      playlistsCount: playlistsResponse.data.length
-    });
-    
-  } catch (error) {
-    console.error("Error fetching user info:", error);
-    setMessage("⚠️ Login successful but failed to fetch user info");
-  }
-};
+      // Load user's songs and playlists
+      console.log("🚀 Loading user's songs and playlists...");
+      const [songsResponse, playlistsResponse] = await Promise.all([
+        axios.get(`${API_URL}/songs/user/${userRes.data.id}`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        }),
+        axios.get(`${API_URL}/playlists/user/${userRes.data.id}`, {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        })
+      ]);
+
+      console.log("📦 Data loaded:", {
+        songs: songsResponse.data.length,
+        playlists: playlistsResponse.data.length,
+        user: userRes.data.email
+      });
+
+      // ✅ Dispatch all data to Redux
+      dispatch(setUser(userRes.data));
+      dispatch(setSongs(songsResponse.data));
+      dispatch(setPlaylists(playlistsResponse.data));
+
+      console.log("✅ All data dispatched to Redux:", {
+        user: userRes.data.email,
+        songsCount: songsResponse.data.length,
+        playlistsCount: playlistsResponse.data.length
+      });
+
+    } catch (error) {
+      console.error("Error fetching user info:", error);
+      setMessage("⚠️ Login successful but failed to fetch user info");
+    }
+  };
 
   // Google auth initialization
   useEffect(() => {
@@ -95,7 +96,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
       script.async = true;
       script.defer = true;
       document.body.appendChild(script);
-      
+
       script.onload = () => {
         setGoogleLoaded(true);
       };
@@ -119,14 +120,14 @@ const Auth3 = () => { // ✅ Remove prop parameter
     const googleButton = document.getElementById('google-button');
     if (googleButton) {
       googleButton.innerHTML = '';
-      
+
       const shouldShowButton = isLogin || (username.trim() && password.trim());
-      
+
       if (shouldShowButton) {
         window.google.accounts.id.renderButton(
           googleButton,
-          { 
-            theme: 'outline', 
+          {
+            theme: 'outline',
             size: 'large',
             width: '100%',
             shape: 'pill'
@@ -141,7 +142,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
       const idToken = response.credential;
       const decodedToken = decodeGoogleToken(idToken);
       const googleEmail = decodedToken?.email;
-      
+
       if (!googleEmail) {
         setMessage("❌ Failed to extract email from Google token");
         return;
@@ -150,14 +151,14 @@ const Auth3 = () => { // ✅ Remove prop parameter
       let res;
       if (isLogin) {
         res = await axios.post(`${API_URL}/auth/google/login`, {
-           token: idToken
+          token: idToken
         });
       } else {
         if (!username.trim() || !password.trim()) {
           setMessage("❌ Please fill in username and password before using Google signup");
           return;
         }
-        
+
         res = await axios.post(`${API_URL}/auth/google/signup`, {
           token: idToken,
           name: username,
@@ -165,15 +166,15 @@ const Auth3 = () => { // ✅ Remove prop parameter
         });
       }
 
-      const { accessToken, refreshToken } = res.data;
-      localStorage.setItem("accessToken", accessToken); 
-      localStorage.setItem("refreshToken", refreshToken);
-      
+      const { access_token, refresh_token } = res.data; // ✅ Fixed field names
+      localStorage.setItem("accessToken", access_token);
+      dispatch(setRefreshToken(refresh_token)); // ✅ Store in Redux memory only
+
       // ✅ Only fetch user data - Redux dispatch will trigger App re-render
-      await fetchUserInfo(googleEmail, accessToken);
+      await fetchUserInfo(googleEmail, access_token);
       setMessage("✅ Success! You are logged in.");
-      dispatch(authenticated());
-      
+      // ✅ Removed dispatch(authenticated()) - function doesn't exist
+
     } catch (err) {
       setMessage("❌ " + (err.response?.data?.message || "Google auth failed"));
     }
@@ -188,14 +189,14 @@ const Auth3 = () => { // ✅ Remove prop parameter
           password,
         });
 
-        const { accessToken, refreshToken } = res.data;
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
-        
+        const { access_token, refresh_token } = res.data; // ✅ Fixed field names
+        localStorage.setItem("accessToken", access_token);
+        dispatch(setRefreshToken(refresh_token)); // ✅ Store in Redux memory only
+
         // ✅ Only fetch user data - Redux dispatch will trigger App re-render
-        await fetchUserInfo(email, accessToken);
+        await fetchUserInfo(email, access_token);
         setMessage("✅ Success! You are logged in.");
-        
+
       } else {
         const res = await axios.post(`${API_URL}/auth/signup`, {
           email,
@@ -203,12 +204,12 @@ const Auth3 = () => { // ✅ Remove prop parameter
           password,
         });
 
-        const { accessToken, refreshToken } = res.data;
-        localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("refreshToken", refreshToken);
+        const { access_token, refresh_token } = res.data; // ✅ Fixed field names
+        localStorage.setItem("accessToken", access_token);
+        dispatch(setRefreshToken(refresh_token)); // ✅ Store in Redux memory only
 
         // ✅ Only fetch user data - Redux dispatch will trigger App re-render
-        await fetchUserInfo(email, accessToken);
+        await fetchUserInfo(email, access_token);
         setMessage("✅ Account created successfully!");
       }
     } catch (err) {
@@ -229,15 +230,14 @@ const Auth3 = () => { // ✅ Remove prop parameter
       </div>
 
       {/* Main Auth Container */}
-      <div className={`relative w-full max-w-md max-h-[90vh] transform transition-all duration-500 ${
-        showAuth
-          ? "translate-y-0 opacity-100 scale-100"
-          : "translate-y-8 opacity-0 scale-95"
-      }`}>
-        
+      <div className={`relative w-full max-w-md max-h-[90vh] transform transition-all duration-500 ${showAuth
+        ? "translate-y-0 opacity-100 scale-100"
+        : "translate-y-8 opacity-0 scale-95"
+        }`}>
+
         {/* Glassmorphism Card */}
         <div className="bg-white/10 backdrop-blur-lg border border-white/20 p-8 rounded-3xl shadow-2xl">
-          
+
           {/* Header with Logo */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-28 h-28 rounded-2xl mb-4">
@@ -245,7 +245,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
                 <img src={logo} alt="Logo" className="w-full h-full object-cover rounded-2xl" />
               </div>
             </div>
-            
+
             <h2 className="text-3xl font-bold text-white mb-2">
               {isLogin ? "Welcome Back" : "Create Account"}
             </h2>
@@ -256,7 +256,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            
+
             <div className="space-y-4">
               <div className="relative">
                 <input
@@ -291,7 +291,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
                   </div>
                 </div>
               )}
-              
+
               <div className="relative">
                 <input
                   type="password"
@@ -330,7 +330,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
           {/* Google Auth */}
           <div className="space-y-3">
             <div id="google-button" className="w-full min-h-[48px] [&>div]:!w-full [&>div]:!rounded-2xl"></div>
-            
+
             {!isLogin && !shouldShowGoogleButton && (
               <div className="flex items-center justify-center bg-white/10 backdrop-blur-sm text-blue-200 rounded-2xl px-4 py-3 border border-white/20">
                 <img className="h-5 w-5 mr-3 opacity-70" src={image} alt="icon" />
@@ -341,13 +341,12 @@ const Auth3 = () => { // ✅ Remove prop parameter
 
           {/* Message */}
           {message && (
-            <div className={`mt-4 p-3 rounded-2xl text-center text-sm ${
-              message.includes('✅') 
-                ? 'bg-green-500/20 text-green-200 border border-green-500/30' 
-                : message.includes('⚠️')
+            <div className={`mt-4 p-3 rounded-2xl text-center text-sm ${message.includes('✅')
+              ? 'bg-green-500/20 text-green-200 border border-green-500/30'
+              : message.includes('⚠️')
                 ? 'bg-yellow-500/20 text-yellow-200 border border-yellow-500/30'
                 : 'bg-red-500/20 text-red-200 border border-red-500/30'
-            }`}>
+              }`}>
               {message}
             </div>
           )}

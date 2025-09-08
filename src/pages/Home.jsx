@@ -10,6 +10,15 @@ const Home = () => {
     navigate(route);
   };
 
+  // Calculate total duration in minutes
+  const getTotalDuration = () => {
+    return user?.songs?.reduce((total, song) => {
+      const duration = song.duration || "0:00";
+      const [minutes, seconds] = duration.split(':').map(Number);
+      return total + (minutes || 0) + ((seconds || 0) / 60);
+    }, 0).toFixed(0) || 0;
+  };
+
   return (
     <div className="px-4 py-6 sm:p-6 min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-black">
       {/* Hero Section */}
@@ -73,8 +82,8 @@ const Home = () => {
             <div className="text-xs sm:text-sm lg:text-base text-gray-300">Current Playlists</div>
           </div>
           <div className="animate-counter" style={{animationDelay: '0.4s'}}>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-green-400 mb-1 sm:mb-2">0</div>
-            <div className="text-xs sm:text-sm lg:text-base text-gray-300">Hours Listened</div>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-green-400 mb-1 sm:mb-2">{getTotalDuration()} min</div>
+            <div className="text-xs sm:text-sm lg:text-base text-gray-300">Duration of your library</div>
           </div>
         </div>
       </div>

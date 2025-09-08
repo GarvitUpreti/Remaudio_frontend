@@ -1,6 +1,25 @@
 import React from 'react';
 
 const DeveloperNote = () => {
+  const handleContactSupport = () => {
+    const supportEmail = import.meta.env.VITE_SUPPORT_GMAIL || 'support@remaudio.com';
+    const subject = 'Contact from Remaudio User';
+    const body = `Hello Remaudio Team,
+
+I would like to get in touch regarding:
+
+Please describe your message here...
+
+Best regards,
+[Your Name]`;
+
+    // Create Gmail URL and open directly
+    const gmailUrl = `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=${encodeURIComponent(supportEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    
+    // Open Gmail directly in new tab
+    window.open(gmailUrl, '_blank');
+  };
+
   return (
     <div className="px-4 py-6 sm:p-6 max-w-4xl mx-auto">
       <h1 className="text-2xl sm:text-3xl font-bold text-white mb-6">Developer's Note</h1>
@@ -43,9 +62,10 @@ const DeveloperNote = () => {
         {/* Features */}
         <div className="bg-gray-900 rounded-lg sm:rounded-xl p-4 sm:p-6">
           <h2 className="text-xl sm:text-2xl font-semibold text-blue-400 mb-3 sm:mb-4">Features ✨</h2>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
             <div>
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-3">Current Features</h3>
+              
               <ul className="text-gray-300 space-y-2">
                 <li className="flex items-start">
                   <span className="text-green-400 mr-2 flex-shrink-0 mt-0.5">✓</span>
@@ -70,27 +90,24 @@ const DeveloperNote = () => {
               </ul>
             </div>
             <div>
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-3">Upcoming Features</h3>
+             
+              
               <ul className="text-gray-300 space-y-2">
                 <li className="flex items-start">
-                  <span className="text-yellow-400 mr-2 flex-shrink-0 mt-0.5">⏳</span>
-                  <span className="text-sm sm:text-base">Music Recommendations</span>
+                  <span className="text-green-400 mr-2 flex-shrink-0 mt-0.5">✓</span>
+                  <span className="text-sm sm:text-base">Google Authentication</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-yellow-400 mr-2 flex-shrink-0 mt-0.5">⏳</span>
-                  <span className="text-sm sm:text-base">Social Features & Sharing</span>
+                  <span className="text-green-400 mr-2 flex-shrink-0 mt-0.5">✓</span>
+                  <span className="text-sm sm:text-base">Multiplay Feature : sync playback of many devices together</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-yellow-400 mr-2 flex-shrink-0 mt-0.5">⏳</span>
-                  <span className="text-sm sm:text-base">Advanced Search & Filtering</span>
+                  <span className="text-green-400 mr-2 flex-shrink-0 mt-0.5">✓</span>
+                  <span className="text-sm sm:text-base">Password and username Editing</span>
                 </li>
                 <li className="flex items-start">
-                  <span className="text-yellow-400 mr-2 flex-shrink-0 mt-0.5">⏳</span>
-                  <span className="text-sm sm:text-base">Music Visualization</span>
-                </li>
-                <li className="flex items-start">
-                  <span className="text-yellow-400 mr-2 flex-shrink-0 mt-0.5">⏳</span>
-                  <span className="text-sm sm:text-base">Mobile App</span>
+                  <span className="text-green-400 mr-2 flex-shrink-0 mt-0.5">✓</span>
+                  <span className="text-sm sm:text-base">Users can contact developer for feedback and suggestion</span>
                 </li>
               </ul>
             </div>
@@ -139,15 +156,15 @@ const DeveloperNote = () => {
           <p className="text-gray-300 mb-4 text-sm sm:text-base">
             Have feedback, suggestions, or found a bug? I'd love to hear from you!
           </p>
-          <div className="flex flex-col sm:flex-row flex-wrap gap-3 sm:gap-4">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 sm:py-2 rounded-lg transition-colors font-medium text-sm sm:text-base">
-              Report Bug
-            </button>
-            <button className="bg-green-600 hover:bg-green-700 text-white px-4 py-3 sm:py-2 rounded-lg transition-colors font-medium text-sm sm:text-base">
-              Feature Request
-            </button>
-            <button className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-3 sm:py-2 rounded-lg transition-colors font-medium text-sm sm:text-base">
-              Send Feedback
+          <div className="flex justify-center">
+            <button 
+              onClick={handleContactSupport}
+              className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white px-6 py-3 rounded-lg transition-all duration-200 font-medium text-sm sm:text-base flex items-center space-x-2 shadow-lg hover:shadow-xl transform hover:scale-105"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+              <span>Contact Us via Gmail</span>
             </button>
           </div>
         </div>
@@ -155,7 +172,7 @@ const DeveloperNote = () => {
         {/* Footer */}
         <div className="text-center text-gray-400 py-6">
           <p className="text-sm sm:text-base">Made with ❤️ for music lovers everywhere</p>
-          <p className="text-xs sm:text-sm mt-2">Remaudio v1.0.0 - {new Date().getFullYear()}</p>
+          <p className="text-xs sm:text-sm mt-2">Remaudio v2.0.0 - {new Date().getFullYear()}</p>
         </div>
       </div>
       
