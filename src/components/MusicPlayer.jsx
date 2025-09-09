@@ -2,6 +2,8 @@ import React, { useRef, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import MarqueeText from './MarqueeText';
 import '../styles/MusicPlayer.css';
+import forward_5 from '../assets/forward_5.png';
+import back_5 from '../assets/back_5.png';
 import {
   setCurrentVolume,
   setCurrentlyPlayingOn,
@@ -388,14 +390,9 @@ const MusicPlayer = () => {
               onClick={() => handleSkip(-5)}
               className="text-white hover:text-blue-400 transition-colors p-1"
             >
-              <div className="relative">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11 18V6l-8.5 6 8.5 6z" />
-                </svg>
-                <span className="absolute -bottom-1 -right-1 text-xs bg-gray-800 rounded px-1">
-                  5
-                </span>
-              </div>
+              
+              <img src= {back_5} alt="" className = "w-6 h-6 sm:w-8 sm:h-8" />               
+          
             </button>
 
             {/* Play/Pause */}
@@ -418,15 +415,8 @@ const MusicPlayer = () => {
             <button
               onClick={() => handleSkip(5)}
               className="text-white hover:text-blue-400 transition-colors p-1"
-            >
-              <div className="relative">
-                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M4 18l8.5-6L4 6v12z" />
-                </svg>
-                <span className="absolute -bottom-1 -right-1 text-xs bg-gray-800 rounded px-1">
-                  5
-                </span>
-              </div>
+            >        
+              <img src= {forward_5} alt="" className="w-6 h-6 sm:w-8 sm:h-8"/>           
             </button>
 
             {/* Next */}

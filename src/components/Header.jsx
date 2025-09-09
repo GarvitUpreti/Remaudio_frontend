@@ -21,6 +21,10 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
     // Navigate to login or home
     dispatch(logout())
   };
+  const openProfile = () => {
+    navigate('/userProfile');
+    setProfileMenuOpen(false);
+  }
 
   const handleHelpSupport = () => {
     const supportEmail = import.meta.env.VITE_SUPPORT_GMAIL || 'support@remaudio.com';
@@ -30,10 +34,10 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
 I need assistance with:
 
-Please describe your issue here...
+issue: 
 
 Best regards,
-${user?.name || 'User'}
+${user?.name || 'User name'}
 ${user?.email || ''}`;
 
     // Close dropdown
@@ -104,7 +108,12 @@ ${user?.email || ''}`;
                       className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gray-600 group-hover:border-blue-500 transition-all duration-200 shadow-lg"
                       onError={(e) => {
                         console.log("Image failed to load:", user.profilePic);
-                        e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMjAiIGZpbGw9IiM2MzY2RjEiLz4KPHRleHQgeD0iMjAiIHk9IjI1IiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1zaXplPSIxNiIgZm9udC1mYW1pbHk9IkFyaWFsIj5VPC90ZXh0Pgo8L3N2Zz4=';
+                        const firstLetter = user?.name?.charAt(0)?.toUpperCase() || 'U';
+                        const svgString = `<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="20" cy="20" r="20" fill="#6366F1"/>
+    <text x="20" y="25" text-anchor="middle" fill="white" font-size="16" font-family="Arial">${firstLetter}</text>
+  </svg>`;
+                        e.target.src = 'data:image/svg+xml;base64,' + btoa(svgString);
                       }}
                     />
                   ) : (
@@ -147,13 +156,23 @@ ${user?.email || ''}`;
                       <div className="relative">
                         {user && user.profilePic ? (
                           <img
+                            key={user.profilePic}
                             src={user.profilePic}
                             alt="profile"
-                            className="w-10 h-10 sm:w-12 sm:h-12 rounded-full object-cover border-2 border-blue-300"
+                            className="w-8 h-8 sm:w-10 sm:h-10 rounded-full object-cover border-2 border-gray-600 group-hover:border-blue-500 transition-all duration-200 shadow-lg"
+                            onError={(e) => {
+                              console.log("Image failed to load:", user.profilePic);
+                              const firstLetter = user?.name?.charAt(0)?.toUpperCase() || 'U';
+                              const svgString = `<svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="20" cy="20" r="20" fill="#6366F1"/>
+    <text x="20" y="25" text-anchor="middle" fill="white" font-size="16" font-family="Arial">${firstLetter}</text>
+  </svg>`;
+                              e.target.src = 'data:image/svg+xml;base64,' + btoa(svgString);
+                            }}
                           />
                         ) : (
-                          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-blue-500 flex items-center justify-center border-2 border-blue-300">
-                            <span className="text-white text-sm font-bold">
+                          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center border-2 border-gray-600 group-hover:border-blue-400 transition-all duration-200 shadow-lg">
+                            <span className="text-white text-xs sm:text-sm font-bold">
                               {user?.name?.charAt(0)?.toUpperCase() || 'U'}
                             </span>
                           </div>
