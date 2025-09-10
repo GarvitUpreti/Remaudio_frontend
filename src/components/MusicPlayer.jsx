@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import MarqueeText from './MarqueeText';
-import '../styles/MusicPlayer.css';
+import '../styles/musicPlayer.css';
 import forward_5 from '../assets/forward_5.png';
 import back_5 from '../assets/back_5.png';
 import {
