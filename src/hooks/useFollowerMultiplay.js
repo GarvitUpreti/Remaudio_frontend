@@ -77,6 +77,8 @@ export const useFollowerMultiplay = () => {
 
       switch (action) {
         case 'play':
+          predictivePlaybackTime = hostPlaybackTime + (networkDelay * 0.3) + (baseDeviceDelay * 0.5);
+          break;
         case 'resume':
           // Predict where host will be when our audio actually starts
           predictivePlaybackTime = hostPlaybackTime + (networkDelay * 0.3) + (baseDeviceDelay * 0.5);
