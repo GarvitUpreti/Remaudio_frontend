@@ -158,7 +158,7 @@ const MusicPlayer = () => {
   if (!currentSong) return null;
 
   return (
-    <div 
+    <div
       className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 p-3 sm:p-3 lg:p-4 z-50"
       style={sliderStyle}
     >
@@ -222,13 +222,12 @@ const MusicPlayer = () => {
         {/* Controls and Volume - Third Row */}
         <div className="flex items-center justify-between">
           {/* Volume Control - Left */}
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 xs:space-x-2">
             {/* Repeat Mode */}
             <button
               onClick={toggleRepeatMode}
-              className={`transition-colors p-1 ${
-                repeatMode !== 'none' ? 'text-blue-400' : 'text-gray-400 hover:text-white'
-              }`}
+              className={`transition-colors p-1 ${repeatMode !== 'none' ? 'text-blue-400' : 'text-gray-400 hover:text-white'
+                }`}
               title={`Repeat: ${repeatMode}`}
             >
               {getRepeatIcon()}
@@ -245,71 +244,67 @@ const MusicPlayer = () => {
               step="0.01"
               value={currentVolume}
               onChange={(e) => dispatch(setCurrentVolume(parseFloat(e.target.value)))}
-              className="w-32 volume-slider" // Increased from w-20 to w-32
+              className="w-20 xs:w-24 volume-slider" // Responsive width
             />
           </div>
 
-          {/* Playback Controls - Center */}
-          <div className="flex items-center space-x-1">
+          {/* Playback Controls - Center/Right depending on screen size */}
+          <div className="flex items-center space-x-1 ml-auto mr-2 xs:mr-0 xs:mx-auto">
             {/* Previous */}
             <button
               onClick={() => dispatch(playPreviousSong())}
-              className="text-white hover:text-blue-400 transition-colors p-2"
+              className="text-white hover:text-blue-400 transition-colors p-1 xs:p-2"
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 xs:w-5 xs:h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 6h2v12H6zm3.5 6l8.5 6V6z" />
               </svg>
             </button>
 
-            {/* 5 sec backward */}
+            {/* 5 sec backward - Hidden on extra small screens */}
             <button
               onClick={() => handleSkip(-5)}
-              className="text-white hover:text-blue-400 transition-colors p-1"
+              className="text-white hover:text-blue-400 transition-colors p-1 flex-shrink-0"
             >
-              <div className="relative">
-                <img src= {back_5} alt="" className="w-6 h-6 sm:w-8 sm:h-8"></img>
-              </div>
+              <img src={back_5} alt="" className="w-5 h-5 xs:w-6 xs:h-6" />
             </button>
 
             {/* Play/Pause */}
             <button
               onClick={() => dispatch(setIsPlaying(!isPlaying))}
-              className="text-white hover:text-blue-400 transition-colors p-2 bg-gray-800 rounded-full mx-2"
+              className="text-white hover:text-blue-400 transition-colors p-2 bg-gray-800 rounded-full mx-1 xs:mx-2"
             >
               {isPlaying ? (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 xs:w-6 xs:h-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 xs:w-6 xs:h-6" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M8 5v14l11-7z" />
                 </svg>
               )}
             </button>
 
-            {/* 5 sec forward */}
+            {/* 5 sec forward - Hidden on extra small screens */}
             <button
               onClick={() => handleSkip(5)}
-              className="text-white hover:text-blue-400 transition-colors p-1"
+              className="text-white hover:text-blue-400 transition-colors p-1 flex-shrink-0"
             >
-              <div className="relative">
-                <img src= {forward_5} alt="" className="w-6 h-6 sm:w-8 sm:h-8"></img>
-              </div>
+              <img src={forward_5} alt="" className="w-5 h-5 xs:w-6 xs:h-6" />
             </button>
 
             {/* Next */}
             <button
               onClick={() => dispatch(playNextSong())}
-              className="text-white hover:text-blue-400 transition-colors p-2"
+              className="text-white hover:text-blue-400 transition-colors p-1 xs:p-2"
             >
-              <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 xs:w-5 xs:h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z" />
               </svg>
             </button>
           </div>
 
-          {/* Empty space for balance */}
-          <div className="w-16"></div> {/* Reduced from w-20 to w-16 to accommodate larger volume slider */}
+          {/* Empty space for balance - Only visible on larger mobile screens */}
+          <div className="w-0 xs:w-16"></div>
         </div>
       </div>
 
@@ -380,9 +375,9 @@ const MusicPlayer = () => {
               onClick={() => handleSkip(-5)}
               className="text-white hover:text-blue-400 transition-colors p-1"
             >
-              
-              <img src= {back_5} alt="" className = "w-6 h-6 sm:w-8 sm:h-8" />               
-          
+
+              <img src={back_5} alt="" className="w-6 h-6 sm:w-8 sm:h-8" />
+
             </button>
 
             {/* Play/Pause */}
@@ -405,8 +400,8 @@ const MusicPlayer = () => {
             <button
               onClick={() => handleSkip(5)}
               className="text-white hover:text-blue-400 transition-colors p-1"
-            >        
-              <img src= {forward_5} alt="" className="w-6 h-6 sm:w-8 sm:h-8"/>           
+            >
+              <img src={forward_5} alt="" className="w-6 h-6 sm:w-8 sm:h-8" />
             </button>
 
             {/* Next */}
@@ -425,9 +420,8 @@ const MusicPlayer = () => {
             {/* Repeat Mode */}
             <button
               onClick={toggleRepeatMode}
-              className={`transition-colors p-1 ${
-                repeatMode !== 'none' ? 'text-blue-400' : 'text-gray-400 hover:text-white'
-              }`}
+              className={`transition-colors p-1 ${repeatMode !== 'none' ? 'text-blue-400' : 'text-gray-400 hover:text-white'
+                }`}
               title={`Repeat: ${repeatMode}`}
             >
               {getRepeatIcon()}

@@ -75,7 +75,7 @@ ${user?.email || ''}`;
               />
               <div className="absolute inset-0 bg-blue-500 opacity-0 group-hover:opacity-20 rounded-full transition-opacity duration-200"></div>
             </div>
-            <span className="text-xl sm:text-2xl md:text-3xl -ml-1 sm:-ml-2 mt-0.5 sm:mt-1 font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-blue-500 transition-all duration-200">
+            <span className="text-xl sm:text-2xl md:text-3xl -ml-1 sm:-ml-2 mt-1.5 sm:mt-1 font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent group-hover:from-blue-300 group-hover:to-blue-500 transition-all duration-200">
               emaudio
             </span>
           </div>

@@ -218,3 +218,111 @@
   backface-visibility: hidden;
   perspective: 1000px;
 }
+
+/* Custom extra small breakpoint for very narrow screens - Changed from 380px to 320px */
+@media (min-width: 320px) {
+  .xs\:block {
+    display: block !important;
+  }
+  
+  .xs\:w-24 {
+    width: 6rem !important;
+  }
+  
+  .xs\:w-6 {
+    width: 1.5rem !important;
+  }
+  
+  .xs\:h-6 {
+    height: 1.5rem !important;
+  }
+  
+  .xs\:w-5 {
+    width: 1.25rem !important;
+  }
+  
+  .xs\:h-5 {
+    height: 1.25rem !important;
+  }
+  
+  .xs\:p-2 {
+    padding: 0.5rem !important;
+  }
+  
+  .xs\:mx-2 {
+    margin-left: 0.5rem !important;
+    margin-right: 0.5rem !important;
+  }
+  
+  .xs\:mx-auto {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+  
+  .xs\:mr-0 {
+    margin-right: 0 !important;
+  }
+  
+  .xs\:w-16 {
+    width: 4rem !important;
+  }
+  
+  .xs\:space-x-2 > :not([hidden]) ~ :not([hidden]) {
+    margin-left: 0.5rem !important;
+  }
+}
+
+/* Hide skip buttons only on extremely small screens - Changed from 379px to 319px */
+@media (max-width: 319px) {
+  .hidden\:xs {
+    display: none !important;
+  }
+  
+  /* Ensure controls shift to right on very small screens */
+  .mobile-controls-container {
+    justify-content: flex-end !important;
+  }
+  
+  /* Adjust volume slider width on very small screens */
+  .volume-slider-xs {
+    width: 3rem !important; /* Even smaller on extreme screens */
+  }
+  
+  /* Reduce spacing on very small screens */
+  .space-x-0\.5 > :not([hidden]) ~ :not([hidden]) {
+    margin-left: 0.125rem !important;
+  }
+}
+
+/* Additional breakpoint for medium-small screens where we start shifting right */
+@media (max-width: 360px) and (min-width: 320px) {
+  .mobile-controls-container {
+    justify-content: flex-end !important;
+  }
+  
+  .controls-shift-right {
+    margin-left: auto !important;
+    margin-right: 0.5rem !important;
+  }
+}
+
+/* Additional mobile-specific optimizations */
+@media (max-width: 640px) {
+  /* Ensure proper touch targets */
+  .mobile-button {
+    min-width: 40px; /* Reduced from 44px to save space */
+    min-height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Prevent text selection on controls */
+  .mobile-controls {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
