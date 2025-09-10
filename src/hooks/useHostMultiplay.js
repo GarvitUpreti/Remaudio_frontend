@@ -65,11 +65,10 @@ export const useHostMultiplay = () => {
       action = 'newSong';
     } else if (currentState.isPlaying !== prevState.isPlaying) {
       action = currentState.isPlaying ? 'play' : 'pause';
-    } else if (Math.abs(currentState.currentlyPlayingOn - prevState.currentlyPlayingOn) > 5.0) {
-      // Reduced threshold from 1.5s to 1.0s for better seek detection
+    } else if (Math.abs(currentState.currentlyPlayingOn - prevState.currentlyPlayingOn) > 3.0) {
       action = 'seek';
     } else if (Math.abs(currentState.currentVolume - prevState.currentVolume) > 0.01) {
-      // More sensitive volume detection
+      // sensitive volume detection
       action = 'volume';
     }
 
