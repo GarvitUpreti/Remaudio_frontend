@@ -267,12 +267,7 @@ const MusicPlayer = () => {
               className="text-white hover:text-blue-400 transition-colors p-1"
             >
               <div className="relative">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M11 18V6l-8.5 6 8.5 6z" />
-                </svg>
-                <span className="absolute -bottom-1 -right-1 text-xs bg-gray-800 rounded px-1">
-                  5
-                </span>
+                <img src= {back_5} alt="" className="w-6 h-6 sm:w-8 sm:h-8"></img>
               </div>
             </button>
 
@@ -298,12 +293,7 @@ const MusicPlayer = () => {
               className="text-white hover:text-blue-400 transition-colors p-1"
             >
               <div className="relative">
-                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M4 18l8.5-6L4 6v12z" />
-                </svg>
-                <span className="absolute -bottom-1 -right-1 text-xs bg-gray-800 rounded px-1">
-                  5
-                </span>
+                <img src= {forward_5} alt="" className="w-6 h-6 sm:w-8 sm:h-8"></img>
               </div>
             </button>
 
