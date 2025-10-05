@@ -9,14 +9,15 @@ const Upload = () => {
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [processingStatus, setProcessingStatus] = useState(''); // ✅ NEW: Track what's happening
   const [uploadedFiles, setUploadedFiles] = useState([]);
   const [uploadedSong, setUploadedSong] = useState([]);
   const [uploadErrors, setUploadErrors] = useState([]);
   const [currentUploadingFile, setCurrentUploadingFile] = useState('');
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
-  // Maximum file size (50MB)
-  const MAX_FILE_SIZE = 50 * 1024 * 1024;
+  // ✅ FIXED: Match backend limit (100MB)
+  const MAX_FILE_SIZE = 100 * 1024 * 1024;
 
   const handleDrag = (e) => {
     e.preventDefault();
@@ -35,7 +36,7 @@ const Upload = () => {
 
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
       handleFiles(e.dataTransfer.files);
-      e.dataTransfer.clearData(); // Clear the drag data
+      e.dataTransfer.clearData();
     }
   };
 
@@ -47,8 +48,8 @@ const Upload = () => {
   };
 
   const handleFiles = async (files) => {
-    setUploadErrors([]); // Clear previous errors
-    
+    setUploadErrors([]);
+
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
 
@@ -62,6 +63,13 @@ const Upload = () => {
       // Check file size
       if (file.size > MAX_FILE_SIZE) {
         const errorMsg = `${file.name} is too large. Maximum size is ${MAX_FILE_SIZE / 1024 / 1024}MB`;
+        setUploadErrors(prev => [...prev, errorMsg]);
+        continue;
+      }
+
+      // ✅ Check if file is empty
+      if (file.size === 0) {
+        const errorMsg = `${file.name} is empty`;
         setUploadErrors(prev => [...prev, errorMsg]);
         continue;
       }
@@ -88,7 +96,7 @@ const Upload = () => {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
             'Content-Type': 'application/json',
           },
-          timeout: 30000, // 30 seconds timeout
+          timeout: 30000,
         }
       );
 
@@ -107,10 +115,17 @@ const Upload = () => {
 
     setUploading(true);
     setUploadProgress(0);
+    setProcessingStatus(''); // ✅ Reset processing status
     setCurrentUploadingFile(file.name);
 
-    // Create a cancel token for the request
     const cancelTokenSource = axios.CancelToken.source();
+
+    // ✅ Log upload start
+    console.log('='.repeat(60));
+    console.log('🎵 Starting upload:', file.name);
+    console.log('📊 File size:', (file.size / 1024 / 1024).toFixed(2), 'MB');
+    console.log('🎵 File type:', file.type);
+    console.log('='.repeat(60));
 
     try {
       const response = await axios.post(
@@ -121,7 +136,7 @@ const Upload = () => {
             'Authorization': `Bearer ${localStorage.getItem('accessToken')}`,
             'Content-Type': 'multipart/form-data',
           },
-          timeout: 600000, // 10 minutes timeout
+          timeout: 600000, // 10 minutes
           cancelToken: cancelTokenSource.token,
           maxContentLength: Infinity,
           maxBodyLength: Infinity,
@@ -129,65 +144,137 @@ const Upload = () => {
             if (progressEvent.total) {
               const progress = (progressEvent.loaded / progressEvent.total) * 100;
               setUploadProgress(Math.round(progress));
+
+              // ✅ Show processing message when upload reaches 100%
+              if (progress === 100) {
+                setProcessingStatus('Uploading to cloud storage...  PLease wait... ');
+                console.log('✅ Data sent to server, waiting for processing...');
+              } else if (progress > 50) {
+                setProcessingStatus('Uploading...');
+              }
             }
           },
         }
       );
 
+      // ✅ Server responded, update status
+      setProcessingStatus('Saving song...');
+      console.log('📦 Server response received:', response.status);
+
+      // ✅ CRITICAL: Validate response data
+      if (!response.data) {
+        console.error('❌ No data in response');
+        throw new Error('Server returned empty response');
+      }
+
+      console.log('📦 Response data:', response.data);
+
+      // ✅ Validate required fields
+      if (!response.data.id) {
+        console.error('❌ Missing song ID in response');
+        throw new Error('Server response missing song ID');
+      }
+
+      if (!response.data.name) {
+        console.error('❌ Missing song name in response');
+        throw new Error('Server response missing song name');
+      }
+
+      if (!response.data.audioURL) {
+        console.error('❌ Missing audio URL in response');
+        throw new Error('Server response missing audio URL');
+      }
+
       if (response.status === 200 || response.status === 201) {
         const result = response.data;
 
+        console.log('✅ Upload successful!');
+        console.log('🆔 Song ID:', result.id);
+        console.log('🎵 Song Name:', result.name);
+        console.log('🔗 Audio URL:', result.audioURL);
+
+        // ✅ Update Redux store
         dispatch(addSong(result));
+        console.log('✅ Song added to Redux store');
 
+        // ✅ Update uploaded files list
+        const newFileId = result.id;
         setUploadedFiles(prev => {
-          const newFiles = [...prev, result.id];
-          updateUserInRedux(newFiles);
+          const newFiles = [...prev, newFileId];
+          // Call updateUserInRedux after state is updated
+          setTimeout(() => updateUserInRedux(newFiles), 0);
           return newFiles;
         });
 
-        setUploadedSong(prev => {
-          const newFiles = [...prev, result.name];
-          return newFiles;
-        });
+        setUploadedSong(prev => [...prev, result.name]);
 
-        // Clear any previous errors for successful upload
+        // ✅ Clear errors for this file
         setUploadErrors(prev => prev.filter(error => !error.includes(file.name)));
 
+        // ✅ Set success status
+        setProcessingStatus('Upload complete! ✓');
+        console.log('='.repeat(60));
+        console.log('🎉 Upload process completed successfully');
+        console.log('='.repeat(60));
+
       } else {
-        setUploadedFiles(prev => [...prev, { name: file.name, status: 'error' }]);
-        setUploadErrors(prev => [...prev, `Failed to upload ${file.name}: Unexpected response`]);
+        console.error('❌ Unexpected response status:', response.status);
+        throw new Error(`Unexpected response status: ${response.status}`);
       }
     } catch (error) {
-      console.error('Upload error:', error);
-      
+      console.error('='.repeat(60));
+      console.error('❌ Upload failed for:', file.name);
+      console.error('Error details:', error);
+
       let errorMessage = `Failed to upload ${file.name}: `;
-      
+
       if (axios.isCancel(error)) {
         errorMessage += 'Upload was cancelled';
       } else if (error.code === 'ECONNABORTED') {
-        errorMessage += 'Upload timed out. Please try again with a smaller file.';
+        errorMessage += 'Upload timed out. Please try again.';
       } else if (error.response?.status === 413) {
         errorMessage += 'File is too large for the server.';
       } else if (error.response?.status === 401) {
         errorMessage += 'Authentication failed. Please login again.';
+      } else if (error.response?.status === 400) {
+        // ✅ Capture backend error message
+        const backendMessage = error.response?.data?.message || error.response?.data?.error;
+        errorMessage += backendMessage || 'Invalid request. Please check the file.';
+        console.error('Backend error:', backendMessage);
       } else if (error.response?.status === 500) {
-        errorMessage += 'Server error. Please try again later.';
+        // ✅ Capture backend error message
+        const backendMessage = error.response?.data?.message || error.response?.data?.error;
+        errorMessage += backendMessage || 'Server error. Please try again later.';
+        console.error('Backend error:', backendMessage);
+      } else if (error.response?.data?.message) {
+        // ✅ Generic backend error message
+        errorMessage += error.response.data.message;
+        console.error('Backend message:', error.response.data.message);
       } else if (error.message) {
         errorMessage += error.message;
       } else {
         errorMessage += 'Unknown error occurred';
       }
 
+      console.error('Final error message:', errorMessage);
+      console.error('='.repeat(60));
+
       setUploadErrors(prev => [...prev, errorMessage]);
-      setUploadedFiles(prev => [...prev, { 
-        name: file.name, 
+      setUploadedFiles(prev => [...prev, {
+        name: file.name,
         status: 'error',
-        error: errorMessage 
+        error: errorMessage
       }]);
+
+      setProcessingStatus('Upload failed ✗');
     } finally {
-      setUploading(false);
-      setUploadProgress(0);
-      setCurrentUploadingFile('');
+      // ✅ Delay before resetting to show final status
+      setTimeout(() => {
+        setUploading(false);
+        setUploadProgress(0);
+        setCurrentUploadingFile('');
+        setProcessingStatus('');
+      }, 2000); // Show final status for 2 seconds
     }
   };
 
@@ -201,7 +288,7 @@ const Upload = () => {
   };
 
   return (
-    <div 
+    <div
       className="px-4 py-6 sm:p-6 pb-24 sm:pb-6"
       onDragOver={(e) => e.preventDefault()}
       onDrop={(e) => e.preventDefault()}
@@ -212,13 +299,12 @@ const Upload = () => {
         {/* Upload Area */}
         <div className="mb-6 sm:mb-8">
           <div
-            className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-colors ${
-              dragActive
+            className={`border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-colors ${dragActive
                 ? 'border-blue-500 bg-blue-500/10'
                 : uploading
-                ? 'border-yellow-500 bg-yellow-500/10'
-                : 'border-gray-600 hover:border-gray-500'
-            }`}
+                  ? 'border-yellow-500 bg-yellow-500/10'
+                  : 'border-gray-600 hover:border-gray-500'
+              }`}
             onDragEnter={handleDrag}
             onDragLeave={handleDrag}
             onDragOver={handleDrag}
@@ -235,28 +321,37 @@ const Upload = () => {
             />
 
             <label htmlFor="file-upload" className={uploading ? "cursor-not-allowed block" : "cursor-pointer block"}>
-              <div className="text-4xl sm:text-6xl text-gray-400 mb-3 sm:mb-4">🎵</div>
+              <div className="text-4xl sm:text-6xl text-gray-400 mb-3 sm:mb-4">
+                {/* ✅ Change emoji based on status */}
+                {uploading && uploadProgress === 100 ? '⏳' : '🎵'}
+              </div>
               <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">
                 {uploading ? `Uploading ${currentUploadingFile}...` : 'Drop your music here'}
               </h3>
               <p className="text-gray-400 mb-3 sm:mb-4 text-sm sm:text-base px-2">
-                {uploading ? `${uploadProgress}% complete` : 'Or tap to browse files'}
+                {/* ✅ Show processing status or progress */}
+                {uploading
+                  ? (processingStatus || `${uploadProgress}% complete`)
+                  : 'Or tap to browse files'}
               </p>
               <p className="text-xs sm:text-sm text-gray-500 px-2">
-                Supports MP3 audio files (Max: {MAX_FILE_SIZE / 1024 / 1024}MB)
+                Supports audio files (Max: {MAX_FILE_SIZE / 1024 / 1024}MB)
               </p>
             </label>
 
             {uploading && (
               <div className="mt-4 sm:mt-6">
-                <div className="bg-gray-700 rounded-full h-2 sm:h-3 mx-4 sm:mx-8">
+                <div className="bg-gray-700 rounded-full h-2 sm:h-3 mx-4 sm:mx-8 overflow-hidden">
                   <div
-                    className="bg-blue-500 h-2 sm:h-3 rounded-full transition-all duration-300"
+                    className={`h-2 sm:h-3 rounded-full transition-all duration-300 ${uploadProgress === 100
+                        ? 'bg-yellow-500 animate-pulse' // ✅ Pulsing when processing
+                        : 'bg-blue-500'
+                      }`}
                     style={{ width: `${uploadProgress}%` }}
                   />
                 </div>
                 <div className="mt-2 text-sm text-gray-300">
-                  {uploadProgress}% uploaded
+                  {processingStatus || `${uploadProgress}% uploaded`}
                 </div>
               </div>
             )}
@@ -317,8 +412,7 @@ const Upload = () => {
           </div>
         )}
       </div>
-      
-      {/* Bottom spacer for mobile */}
+
       <div className="h-8 sm:h-0"></div>
     </div>
   );

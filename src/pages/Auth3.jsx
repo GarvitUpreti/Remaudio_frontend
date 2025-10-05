@@ -4,9 +4,10 @@ import image from '../assets/image.png';
 import logo from '../assets/remaudio_logo.png';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/userSlice';
-import { setSongs } from "../store/songSlice";           // Add this
-import { setPlaylists } from "../store/playlistSlice";   // Add this
-import { setRefreshToken } from '../store/authSlice'; // ✅ ADD THIS LINE
+import { setSongs } from "../store/songSlice";          
+import { setPlaylists } from "../store/playlistSlice";   
+import { setRefreshToken } from '../store/authSlice'; 
+import LoadingScreen from '../components/LoadingScreen'; 
 
 const Auth3 = () => { // ✅ Remove prop parameter
   const dispatch = useDispatch();
@@ -21,6 +22,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
   const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(true);
   const API_URL = import.meta.env.VITE_BACKEND_URL;
+  const [isAuthenticating, setIsAuthenticating] = useState(false);
 
 
   // Helper function to decode JWT token and extract email
@@ -139,6 +141,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
 
   const handleGoogleAuth = async (response) => {
     try {
+      setIsAuthenticating(true); // ✅ ADD THIS LINE
       const idToken = response.credential;
       const decodedToken = decodeGoogleToken(idToken);
       const googleEmail = decodedToken?.email;
@@ -176,6 +179,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
       // ✅ Removed dispatch(authenticated()) - function doesn't exist
 
     } catch (err) {
+      setIsAuthenticating(false); // ✅ ADD THIS LINE
       setMessage("❌ " + (err.response?.data?.message || "Google auth failed"));
     }
   };
@@ -183,6 +187,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      setIsAuthenticating(true);
       if (isLogin) {
         const res = await axios.post(`${API_URL}/auth/login`, {
           email,
@@ -213,11 +218,16 @@ const Auth3 = () => { // ✅ Remove prop parameter
         setMessage("✅ Account created successfully!");
       }
     } catch (err) {
+      setIsAuthenticating(false);
       setMessage("❌ " + (err.response?.data?.message || "Something went wrong"));
     }
   };
 
   const shouldShowGoogleButton = isLogin || (username.trim() && password.trim());
+
+  if (isAuthenticating) {
+    return <LoadingScreen />;
+  }
 
   return (
     <div className="min-h-screen fixed inset-0 bg-gradient-to-br from-slate-900 via-black to-slate-800 flex items-center justify-center p-4 overflow-y-auto">

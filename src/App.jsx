@@ -54,12 +54,13 @@ const App = () => {
     if (!token || !userEmail) {
       dispatch(logout());
       dispatch(clearRefreshToken()); // ✅ Clear refresh token from memory
-      setLoading(false);
+      setTimeout(() => setLoading(false), 500); // Only 0.5 seconds
       return;
     }
 
     const restoreSession = async () => {
       try {
+        setLoading(true);
         // ✅ Fetch user
         const userRes = await axios.get(`${API_URL}/user/email/${userEmail}`, {
           headers: { Authorization: `Bearer ${token}` },
@@ -91,7 +92,8 @@ const App = () => {
           dispatch(clearRefreshToken());
         }
       } finally {
-        setLoading(false);
+        // ✅ CHANGE: Add small delay for smooth transition
+        setTimeout(() => setLoading(false), 800);
       }
     };
 
