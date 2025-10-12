@@ -18,21 +18,39 @@ Best regards,
     const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     if (isMobile) {
-      // ✅ Try Gmail app first (Android intent)
-      const gmailAppUrl = `googlegmail://co?to=${encodeURIComponent(supportEmail)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-      // Fallback to regular mailto
-      const mailtoUrl = `mailto:${encodeURIComponent(supportEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-
-      // Try to open Gmail app
-      window.location.href = gmailAppUrl;
-
-      // If app not installed, fallback after a short delay
-      setTimeout(() => {
+      // ✅ MOBILE: Try to open Gmail app, fallback to default mail app, then web
+      const mailtoUrl = `mailto:${supportEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      
+      if (/Android/i.test(navigator.userAgent)) {
+        // Android: Try Gmail app via intent
+        const intentUrl = `intent://send?to=${encodeURIComponent(supportEmail)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}#Intent;scheme=mailto;package=com.google.android.gm;end`;
+        
+        window.location.href = intentUrl;
+        
+        // Fallback to mailto (opens default email app)
+        setTimeout(() => {
+          window.location.href = mailtoUrl;
+        }, 1000);
+        
+        // Final fallback to Gmail web
+        setTimeout(() => {
+          const gmailUrl = `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=${encodeURIComponent(supportEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          window.open(gmailUrl, '_blank');
+        }, 2500);
+        
+      } else {
+        // iOS: Try mailto (opens default email app, usually Mail or Gmail)
         window.location.href = mailtoUrl;
-      }, 800);
+        
+        // Fallback to Gmail web if no app responds
+        setTimeout(() => {
+          const gmailUrl = `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=${encodeURIComponent(supportEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+          window.open(gmailUrl, '_blank');
+        }, 2000);
+      }
+      
     } else {
-      // ✅ Desktop — open Gmail web compose in new tab
+      // ✅ DESKTOP: Open Gmail web compose directly in new tab
       const gmailUrl = `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=${encodeURIComponent(
         supportEmail
       )}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
