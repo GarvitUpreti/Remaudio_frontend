@@ -1,22 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSelector} from "react-redux";
+import { useSelector } from "react-redux";
 
 const Home = () => {
   const navigate = useNavigate();
-  const user = useSelector((state) => state.user.user);
+  
+  // ✅ Get data from separate Redux slices (not from user object)
+  const songs = useSelector((state) => state.songs.list);
+  const playlists = useSelector((state) => state.playlists.list);
 
-  const handleCardClick = (route) => {
-    navigate(route);
-  };
-
-  // Calculate total duration in minutes
+  // ✅ Calculate total duration from songs slice
   const getTotalDuration = () => {
-    return user?.songs?.reduce((total, song) => {
+    if (!songs || songs.length === 0) return 0;
+    
+    return songs.reduce((total, song) => {
       const duration = song.duration || "0:00";
       const [minutes, seconds] = duration.split(':').map(Number);
       return total + (minutes || 0) + ((seconds || 0) / 60);
-    }, 0).toFixed(0) || 0;
+    }, 0).toFixed(0);
   };
 
   return (
@@ -74,15 +75,21 @@ const Home = () => {
         <h2 className="text-2xl sm:text-3xl font-bold text-center text-white mb-6 sm:mb-8">Your Music Journey</h2>
         <div className="grid grid-cols-3 gap-4 sm:gap-8 text-center">
           <div className="animate-counter">
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-purple-400 mb-1 sm:mb-2">{user?.songs?.length || 0}</div>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-purple-400 mb-1 sm:mb-2">
+              {songs?.length || 0}
+            </div>
             <div className="text-xs sm:text-sm lg:text-base text-gray-300">Current Songs</div>
           </div>
           <div className="animate-counter" style={{animationDelay: '0.2s'}}>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-400 mb-1 sm:mb-2">{user?.playlists?.length || 0}</div>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-blue-400 mb-1 sm:mb-2">
+              {playlists?.length || 0}
+            </div>
             <div className="text-xs sm:text-sm lg:text-base text-gray-300">Current Playlists</div>
           </div>
           <div className="animate-counter" style={{animationDelay: '0.4s'}}>
-            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-green-400 mb-1 sm:mb-2">{getTotalDuration()} min</div>
+            <div className="text-2xl sm:text-3xl lg:text-4xl font-bold text-green-400 mb-1 sm:mb-2">
+              {getTotalDuration()} min
+            </div>
             <div className="text-xs sm:text-sm lg:text-base text-gray-300">Duration of your library</div>
           </div>
         </div>

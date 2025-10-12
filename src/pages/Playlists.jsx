@@ -1,36 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react'; // ✅ Removed useEffect
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
-import { setUser } from '../store/userSlice';
 import { addPlaylist, removePlaylist, updatePlaylist } from '../store/playlistSlice';
 import PlaylistModal from '../components/PlaylistModal';
 
 const Playlists = () => {
-  const [loading, setLoading] = useState(true);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [newPlaylistName, setNewPlaylistName] = useState('');
   const [selectedPlaylist, setSelectedPlaylist] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const user = useSelector((state) => state.user.user);
   const playlists = useSelector((state) => state.playlists.list);
   const API_URL = import.meta.env.VITE_BACKEND_URL;
 
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    fetchPlaylists();
-  }, []);
-
-  const fetchPlaylists = async () => {
-    try {
-      // No need to set playlists state, using user.playlists directly
-    } catch (error) {
-      console.error('Error fetching playlists:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // ❌ REMOVED: loading state (not needed, playlists already loaded in Auth3)
+  // ❌ REMOVED: fetchPlaylists (empty function)
+  // ❌ REMOVED: useEffect (unnecessary)
 
   const createPlaylist = async (e) => {
     e.preventDefault();
@@ -39,9 +26,7 @@ const Playlists = () => {
     try {
       const response = await axios.post(
         `${API_URL}/playlists`,
-        {
-          name: newPlaylistName,
-        },
+        { name: newPlaylistName },
         {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
@@ -49,67 +34,24 @@ const Playlists = () => {
         }
       );
 
+      // ✅ Just add to Redux - no user update needed
       dispatch(addPlaylist(response.data));
+      setNewPlaylistName("");
+      setShowCreateForm(false);
 
-      if (response.status === 201 || response.status === 200) {
-        const newPlaylist = response.data;
-        await updateUserInRedux("patch", newPlaylist.id);
-        setNewPlaylistName("");
-        setShowCreateForm(false);
-      }
     } catch (error) {
-      console.error(
-        "Error creating playlist:",
-        error.response?.data || error.message
-      );
+      console.error("Error creating playlist:", error.response?.data || error.message);
+      alert("Failed to create playlist. Please try again.");
     }
   };
 
-  const updateUserInRedux = async (flag, newPlaylistId) => {
-    try {
-      const userId = localStorage.getItem("userId");
-      if (!userId) {
-        console.error("User id not found in localStorage");
-        return;
-      }
-
-      const url = `${API_URL}/user/${userId}`;
-      const headers = {
-        Authorization: `Bearer ${localStorage.getItem("accessToken")}`,
-        "Content-Type": "application/json",
-      };
-
-      let response;
-      if (flag === "get") {
-        response = await axios.get(`${API_URL}/user/id/${userId}`, { headers });
-      } else {
-        response = await axios.patch(
-          url,
-          {
-            playlistToAdd: [newPlaylistId],
-          },
-          { headers }
-        );
-      }
-
-      if (response.status === 200) {
-        dispatch(setUser(response.data));
-      } else {
-        console.error("Failed to fetch user data");
-      }
-    } catch (error) {
-      console.error(
-        "Error updating user:",
-        error.response?.data || error.message
-      );
-    }
-  };
+  // ❌ REMOVED: updateUserInRedux function (not needed anymore)
 
   const deletePlaylist = async (playlistId) => {
     if (!confirm('Are you sure you want to delete this playlist?')) return;
 
     try {
-      const response = await axios.delete(
+      await axios.delete(
         `${API_URL}/playlists/${playlistId}`,
         {
           headers: {
@@ -117,18 +59,13 @@ const Playlists = () => {
           },
         }
       );
+
+      // ✅ Just remove from Redux - no user update needed
       dispatch(removePlaylist(playlistId));
 
-      if (response.status === 200 || response.status === 204) {
-        // No need to update local state, will be updated via Redux
-      }
-
-      await updateUserInRedux("get");
     } catch (error) {
-      console.error(
-        "Error deleting playlist:",
-        error.response?.data || error.message
-      );
+      console.error("Error deleting playlist:", error.response?.data || error.message);
+      alert("Failed to delete playlist. Please try again.");
     }
   };
 
@@ -163,14 +100,7 @@ const Playlists = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="p-4 sm:p-6 flex justify-center items-center min-h-screen">
-        <div className="text-white text-lg">Loading playlists...</div>
-      </div>
-    );
-  }
-
+  // ✅ No loading state check needed - playlists already loaded from Auth3
   return (
     <div className="px-4 py-6 sm:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">

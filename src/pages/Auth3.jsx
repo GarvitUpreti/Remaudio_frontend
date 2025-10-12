@@ -4,12 +4,12 @@ import image from '../assets/image.png';
 import logo from '../assets/remaudio_logo.png';
 import { useDispatch } from 'react-redux';
 import { setUser } from '../store/userSlice';
-import { setSongs } from "../store/songSlice";          
-import { setPlaylists } from "../store/playlistSlice";   
-import { setRefreshToken } from '../store/authSlice'; 
-import LoadingScreen from '../components/LoadingScreen'; 
+import { setSongs } from "../store/songSlice";
+import { setPlaylists } from "../store/playlistSlice";
+import { setRefreshToken } from '../store/authSlice';
+import LoadingScreen from '../components/LoadingScreen';
 
-const Auth3 = () => { // ✅ Remove prop parameter
+const Auth3 = () => {
   const dispatch = useDispatch();
 
   const [isLogin, setIsLogin] = useState(true);
@@ -18,12 +18,11 @@ const Auth3 = () => { // ✅ Remove prop parameter
   const [message, setMessage] = useState("");
   const [username, setUsername] = useState("");
   const [googleLoaded, setGoogleLoaded] = useState(false);
-  // const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [showAuth, setShowAuth] = useState(true);
   const API_URL = import.meta.env.VITE_BACKEND_URL;
   const [isAuthenticating, setIsAuthenticating] = useState(false);
 
+  // ❌ REMOVED unused 'loading' state - it was never set to false!
 
   // Helper function to decode JWT token and extract email
   const decodeGoogleToken = (token) => {
@@ -53,7 +52,8 @@ const Auth3 = () => { // ✅ Remove prop parameter
       );
 
       localStorage.setItem("userEmail", userEmail);
-      localStorage.setItem("userId", userRes.data.id); // Store user ID for future use
+      localStorage.setItem("userId", userRes.data.id);
+      console.log("user : ", userRes.data);
       console.log("User id:", userRes.data.id);
 
       // Load user's songs and playlists
@@ -66,6 +66,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
           headers: { Authorization: `Bearer ${accessToken}` }
         })
       ]);
+      
 
       console.log("📦 Data loaded:", {
         songs: songsResponse.data.length,
@@ -87,24 +88,23 @@ const Auth3 = () => { // ✅ Remove prop parameter
     } catch (error) {
       console.error("Error fetching user info:", error);
       setMessage("⚠️ Login successful but failed to fetch user info");
+      setIsAuthenticating(false); // ✅ Stop loading on error
     }
   };
 
-  // Google auth initialization
+  // ✅ Optimized: Load Google SDK only once, faster
   useEffect(() => {
-    if (!window.google) {
-      const script = document.createElement('script');
-      script.src = 'https://accounts.google.com/gsi/client';
-      script.async = true;
-      script.defer = true;
-      document.body.appendChild(script);
-
-      script.onload = () => {
-        setGoogleLoaded(true);
-      };
-    } else {
+    if (window.google) {
       setGoogleLoaded(true);
+      return;
     }
+
+    const script = document.createElement('script');
+    script.src = 'https://accounts.google.com/gsi/client';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => setGoogleLoaded(true);
+    document.head.appendChild(script); // ✅ Use head instead of body for faster load
   }, []);
 
   useEffect(() => {
@@ -141,13 +141,14 @@ const Auth3 = () => { // ✅ Remove prop parameter
 
   const handleGoogleAuth = async (response) => {
     try {
-      setIsAuthenticating(true); // ✅ ADD THIS LINE
+      setIsAuthenticating(true);
       const idToken = response.credential;
       const decodedToken = decodeGoogleToken(idToken);
       const googleEmail = decodedToken?.email;
 
       if (!googleEmail) {
         setMessage("❌ Failed to extract email from Google token");
+        setIsAuthenticating(false);
         return;
       }
 
@@ -159,6 +160,7 @@ const Auth3 = () => { // ✅ Remove prop parameter
       } else {
         if (!username.trim() || !password.trim()) {
           setMessage("❌ Please fill in username and password before using Google signup");
+          setIsAuthenticating(false);
           return;
         }
 
@@ -169,17 +171,15 @@ const Auth3 = () => { // ✅ Remove prop parameter
         });
       }
 
-      const { access_token, refresh_token } = res.data; // ✅ Fixed field names
+      const { access_token, refresh_token } = res.data;
       localStorage.setItem("accessToken", access_token);
-      dispatch(setRefreshToken(refresh_token)); // ✅ Store in Redux memory only
+      dispatch(setRefreshToken(refresh_token));
 
-      // ✅ Only fetch user data - Redux dispatch will trigger App re-render
       await fetchUserInfo(googleEmail, access_token);
       setMessage("✅ Success! You are logged in.");
-      // ✅ Removed dispatch(authenticated()) - function doesn't exist
 
     } catch (err) {
-      setIsAuthenticating(false); // ✅ ADD THIS LINE
+      setIsAuthenticating(false);
       setMessage("❌ " + (err.response?.data?.message || "Google auth failed"));
     }
   };
@@ -194,11 +194,10 @@ const Auth3 = () => { // ✅ Remove prop parameter
           password,
         });
 
-        const { access_token, refresh_token } = res.data; // ✅ Fixed field names
+        const { access_token, refresh_token } = res.data;
         localStorage.setItem("accessToken", access_token);
-        dispatch(setRefreshToken(refresh_token)); // ✅ Store in Redux memory only
+        dispatch(setRefreshToken(refresh_token));
 
-        // ✅ Only fetch user data - Redux dispatch will trigger App re-render
         await fetchUserInfo(email, access_token);
         setMessage("✅ Success! You are logged in.");
 
@@ -209,11 +208,10 @@ const Auth3 = () => { // ✅ Remove prop parameter
           password,
         });
 
-        const { access_token, refresh_token } = res.data; // ✅ Fixed field names
+        const { access_token, refresh_token } = res.data;
         localStorage.setItem("accessToken", access_token);
-        dispatch(setRefreshToken(refresh_token)); // ✅ Store in Redux memory only
+        dispatch(setRefreshToken(refresh_token));
 
-        // ✅ Only fetch user data - Redux dispatch will trigger App re-render
         await fetchUserInfo(email, access_token);
         setMessage("✅ Account created successfully!");
       }

@@ -21,6 +21,7 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
   const menuRef = useRef(null);
   const [addToPlaylistModalOpen, setAddToPlaylistModalOpen] = useState(false);
   const API_URL = import.meta.env.VITE_BACKEND_URL;
+  const DEFAULT_SONG_ID = 2; // Change this to 2
 
   // Close menu if clicked outside
   useEffect(() => {
@@ -63,17 +64,24 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
 
     try {
       const accessToken = localStorage.getItem('accessToken');
-      const response = await fetch(`${API_URL}/songs/${song.id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      let response;
+      if (parseInt(song.id) === DEFAULT_SONG_ID) { // Change this to 3
+        alert("Default song will disapear as soon as you upload your first personal song.");
+
+      } else {
+        response = await fetch(`${API_URL}/songs/${song.id}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+      
 
       if (!response.ok) {
         throw new Error('Failed to delete song');
       }
+    }
 
       dispatch(removeSong(song.id));
 
@@ -92,7 +100,7 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
         }
       });
 
-      alert('Song deleted successfully!');
+      // alert('Song deleted successfully!');
     } catch (error) {
       console.error('Error deleting song:', error);
       alert('Failed to delete song. Please try again.');
@@ -102,6 +110,11 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
   };
 
   const handleEditSong = (e) => {
+    if (song.id == DEFAULT_SONG_ID) {
+      alert("Default song cannot be edited please upload a personal song for this feature.");
+      setMenuOpen(false);
+      return;
+    }
     e.stopPropagation();
     setEditForm({
       name: song.name.replace(/\.[^/.]+$/, ""),
@@ -183,6 +196,11 @@ const Song = ({ song, onPlay, isCurrentSong }) => {
   };
 
   const handleAddToPlaylist = (e) => {
+    if (song.id == DEFAULT_SONG_ID) {
+      alert("Default song cannot be added to playlists please upload a personal song for this feature.");
+      setMenuOpen(false);
+      return;
+    }
     e.stopPropagation();
     setAddToPlaylistModalOpen(true);
     setMenuOpen(false);

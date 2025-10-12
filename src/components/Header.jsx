@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useSelector, useDispatch } from "react-redux"; // Add useDispatch here
 import logo from '../assets/remaudio_logo.png';
 import { useNavigate } from "react-router-dom";
@@ -9,6 +9,7 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch(); // Add this line
+  const profileMenuRef = useRef(null); // Ref for the profile dropdown
 
   const handleSignOut = () => {
     // Clear localStorage
@@ -28,7 +29,6 @@ const Header = ({ isSidebarOpen, setIsSidebarOpen }) => {
 
   const handleHelpSupport = () => {
     const supportEmail = import.meta.env.VITE_SUPPORT_GMAIL || 'support@remaudio.com';
-
     const subject = 'Support Request - Remaudio';
     const body = `Hello Remaudio Support Team,
 
@@ -43,12 +43,42 @@ ${user?.email || ''}`;
     // Close dropdown
     setProfileMenuOpen(false);
 
-    // Create Gmail URL and open directly
-    const gmailUrl = `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=${encodeURIComponent(supportEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    // ✅ ADD THIS: Detect if mobile
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // Open Gmail directly in new tab
-    window.open(gmailUrl, '_blank');
+    if (isMobile) {
+      // ✅ Try Gmail app first (Android intent)
+      const gmailAppUrl = `googlegmail://co?to=${encodeURIComponent(supportEmail)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+      // Fallback to regular mailto
+      const mailtoUrl = `mailto:${encodeURIComponent(supportEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+      // Try to open Gmail app
+      window.location.href = gmailAppUrl;
+
+      // If app not installed, fallback after a short delay
+      setTimeout(() => {
+        window.location.href = mailtoUrl;
+      }, 800);
+    } else {
+      // ✅ Desktop — open Gmail web compose in new tab
+      const gmailUrl = `https://mail.google.com/mail/u/0/?view=cm&fs=1&to=${encodeURIComponent(supportEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+      window.open(gmailUrl, '_blank');
+    }
   };
+
+
+  // Close profile menu if clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target)) {
+        setProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   return (
     <header className="bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 border-b border-gray-600 shadow-lg backdrop-blur-sm z-50">
@@ -149,7 +179,10 @@ ${user?.email || ''}`;
                   onClick={() => setProfileMenuOpen(false)}
                 ></div>
 
-                <div className="absolute right-0 top-12 sm:top-16 w-72 sm:w-64 bg-gray-800 border border-gray-600 rounded-xl shadow-2xl z-[101] overflow-hidden">
+                <div
+                  ref={profileMenuRef}
+                  className="absolute right-0 top-12 sm:top-16 w-72 sm:w-64 bg-gray-800 border border-gray-600 rounded-xl shadow-2xl z-[101] overflow-hidden">
+
                   {/* Profile Header */}
                   <div className="p-3 sm:p-4 bg-gradient-to-r from-blue-600 to-blue-700 text-white">
                     <div className="flex items-center space-x-3">
